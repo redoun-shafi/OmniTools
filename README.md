@@ -6,13 +6,15 @@ OmniTools is a responsive personal toolbox built with HTML, CSS, and JavaScript.
 
 ## Included tools
 
-- Recipe Index Generator: search, filter, add, shuffle, and export recipes.
+- Recipe Index Generator: paste recipe data, sort it into four columns, and download a DOC file.
 - DOCX to XLSX: convert recipe documents, match images, embed them in workbooks, and download ZIP files.
 - Flow Automator: a Chrome extension for prompt queues and Google Labs Flow automation.
 
+The Flow Automator download is available from the website at `assets/flow-automator-v3.zip`.
+
 ## Run locally
 
-Open `index.html` in a browser, or serve the folder with any static file server. The browser-based tools process files locally. The Flow Automator remains a Chrome extension and is not executed by the website.
+Open `index.html` in a browser, or serve the folder with any static file server. The browser-based tools run on the website and process files privately in the browser. The Flow Automator remains a Chrome extension and is not executed by the website.
 
 ## GitHub Pages
 

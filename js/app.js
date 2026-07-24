@@ -25,13 +25,13 @@ function renderTools() {
     <article class="tool-card" style="--tool-color:${tool.color}">
       <div class="card-top">
         <div class="tool-icon" aria-hidden="true">${tool.icon}</div>
-        <span class="tool-status">${tool.status}</span>
+        <span class="tool-status ${tool.status === 'Coming soon' ? 'coming-soon' : ''}">${tool.status}</span>
       </div>
       <h3>${tool.name}</h3>
       <p>${tool.description}</p>
       <div class="tool-card-footer">
         <span class="tool-category">${tool.category}</span>
-        <a class="tool-open" href="${tool.href}">${tool.status === 'Coming soon' ? 'Preview' : 'Open tool'}</a>
+        ${tool.status === 'Coming soon' ? '<span class="tool-coming">Coming soon</span>' : `<a class="tool-open" href="${tool.href}">Open tool</a>`}
       </div>
     </article>
   `).join('');

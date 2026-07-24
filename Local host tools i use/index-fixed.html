@@ -2,11 +2,6 @@
 <html>
 <head>
   <title>Recipe Index Generator</title>
-  <meta name="description" content="Recipe Index Generator by OmniTools">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root {
@@ -144,40 +139,10 @@
       border-radius: 8px;
       border: 1px solid var(--border);
     }
-
-    .omni-topbar {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      width: min(1180px, 100%);
-      margin: -20px auto 24px;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--border);
-      background: color-mix(in srgb, var(--bg) 88%, transparent);
-      backdrop-filter: blur(16px);
-    }
-    .omni-brand { display: inline-flex; align-items: center; gap: 9px; color: var(--text); text-decoration: none; font-family: "Plus Jakarta Sans", sans-serif; font-weight: 800; letter-spacing: -.04em; }
-    .omni-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, #2563eb, #7c3aed); color: #fff; }
-    .omni-back { color: var(--accent); font-family: "Plus Jakarta Sans", sans-serif; font-size: 12px; font-weight: 700; text-decoration: none; }
-    .omni-back:hover { text-decoration: underline; }
-    body { font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif; min-height: 100vh; }
-    .card { border: 1px solid var(--border); }
-    button { font-family: inherit; transition: transform .2s, filter .2s; }
-    button:hover { transform: translateY(-1px); filter: brightness(1.06); }
-    @media (max-width: 620px) { .omni-topbar { margin-top: -20px; }.omni-back { font-size: 11px; }.topbar { align-items: flex-start; gap: 12px; flex-direction: column; } }
   </style>
 </head>
 
 <body>
-
-<header class="omni-topbar">
-  <a class="omni-brand" href="../../index.html"><span class="omni-mark">O</span> OmniTools</a>
-  <a class="omni-back" href="../../index.html">&lt;- Back to toolbox</a>
-</header>
 
 <div class="topbar">
   <div>
