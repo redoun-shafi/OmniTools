@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Flow Automator</title>
+<style>
+/* ── CSS vars ─────────────────────────── */
+:root {
+  --bg0:#0d0d12; --bg1:#13131c; --bg2:#1a1a26; --bg3:#22223a;
+  --bd:#ffffff12; --bd2:#ffffff1e;
+  --ac:#7c6fff; --ac2:#a855f7; --glow:#7c6fff28;
+  --tx:#f0f0f8; --tx2:#9090b0; --tx3:#55556a;
+  --green:#22c55e; --red:#ef4444; --amber:#f59e0b;
+  --r:9px;
+  color-scheme: dark;
+}
+html.light {
+  --bg0:#f0f2f8; --bg1:#e8eaf4; --bg2:#ffffff; --bg3:#dde0f0;
+  --bd:#00000012; --bd2:#0000001e;
+  --tx:#1a1a2e; --tx2:#444466; --tx3:#8888aa;
+  color-scheme: light;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  background:var(--bg0);color:var(--tx);font-size:12.5px;
+  display:flex;flex-direction:column;height:100vh;overflow:hidden;
+}
+
+/* ── Header ──────────────────────────── */
+.hdr{
+  padding:11px 14px 9px;
+  background:var(--bg1);
+  border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.logo{
+  width:30px;height:30px;
+  background:linear-gradient(135deg,var(--ac),var(--ac2));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:14px;box-shadow:0 0 12px var(--glow);flex-shrink:0;
+}
+.hdr-text{flex:1;}
+.hdr-title{font-size:13.5px;font-weight:700;color:var(--tx);}
+.hdr-sub{font-size:10px;color:var(--tx3);}
+.theme-btn{
+  width:28px;height:28px;border-radius:7px;border:1px solid var(--bd2);
+  background:var(--bg3);cursor:pointer;display:flex;align-items:center;
+  justify-content:center;font-size:14px;flex-shrink:0;color:var(--tx2);
+  transition:all .15s;
+}
+.theme-btn:hover{border-color:var(--ac);color:var(--ac);}
+
+/* ── Status ──────────────────────────── */
+.sw{padding:6px 14px;background:var(--bg1);border-bottom:1px solid var(--bd);flex-shrink:0;}
+.sp{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:3px 9px 3px 6px;border-radius:20px;
+  background:var(--bg2);border:1px solid var(--bd2);font-size:11px;
+}
+.sp.project{border-color:#7c6fff44;background:#7c6fff0c;}
+.sp.connected{border-color:#22c55e44;background:#22c55e0c;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--tx3);}
+.dot.g{background:var(--green);box-shadow:0 0 6px var(--green);}
+.dot.p{background:var(--ac);box-shadow:0 0 6px var(--glow);}
+.dot.r{background:var(--red);}
+.dot.pulse{animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.st{color:var(--tx2);font-weight:500;}
+.st.p{color:var(--ac);}.st.g{color:var(--green);}
+
+/* ── Tabs ────────────────────────────── */
+.tabs{
+  display:flex;background:var(--bg1);
+  border-bottom:1px solid var(--bd);flex-shrink:0;
+}
+.tab{
+  flex:1;padding:8px 0;font-size:11.5px;font-weight:600;
+  background:none;border:none;color:var(--tx3);cursor:pointer;
+  border-bottom:2px solid transparent;transition:all .15s;
+}
+.tab.active{color:var(--ac);border-bottom-color:var(--ac);}
+.tab:hover:not(.active){color:var(--tx2);}
+
+/* ── Scroll body ─────────────────────── */
+.pane{flex:1;overflow-y:auto;display:none;flex-direction:column;gap:11px;padding:12px 14px;min-height:0;}
+.pane.active{display:flex;}
+.pane::-webkit-scrollbar{width:3px;}
+.pane::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px;}
+
+/* ── Sticky queue footer (always visible, never needs scrolling) ── */
+.queue-footer{
+  display:none;flex-direction:column;gap:8px;
+  padding:10px 14px 12px;flex-shrink:0;
+  border-top:1px solid var(--bd);background:var(--bg1);
+  box-shadow:0 -6px 14px -8px rgba(0,0,0,.4);
+}
+.queue-footer.active{display:flex;}
+
+/* ── Labels / inputs ─────────────────── */
+.lbl{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.9px;margin-bottom:4px;}
+select,input[type=number],input[type=text]{
+  width:100%;background:var(--bg2);border:1px solid var(--bd2);
+  border-radius:7px;color:var(--tx);padding:7px 9px;
+  font-size:12px;font-family:inherit;outline:none;
+  transition:border-color .15s,box-shadow .15s;
+}
+select:focus,input:focus{border-color:var(--ac);box-shadow:0 0 0 2px var(--glow);}
+select option{background:var(--bg2);}
+
+/* ── Card ────────────────────────────── */
+.card{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--r);padding:11px 12px;}
+.card-title{
+  font-size:10px;font-weight:700;color:var(--tx3);
+  text-transform:uppercase;letter-spacing:.9px;
+  margin-bottom:9px;display:flex;align-items:center;gap:5px;
+}
+.card-title::before{
+  content:"";display:inline-block;width:2px;height:11px;
+  background:linear-gradient(var(--ac),var(--ac2));border-radius:2px;
+}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.field{display:flex;flex-direction:column;}
+
+/* ── Toggle ──────────────────────────── */
+.tog-row{display:flex;align-items:center;justify-content:space-between;
+  padding:7px 10px;background:var(--bg2);border:1px solid var(--bd);
+  border-radius:8px;margin-bottom:8px;}
+.tog-lbl{font-size:12px;color:var(--tx2);}
+.toggle{position:relative;width:36px;height:20px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.ts{position:absolute;inset:0;background:var(--bg0);border:1px solid var(--bd2);
+  border-radius:20px;cursor:pointer;transition:all .2s;}
+.ts::before{content:"";position:absolute;width:14px;height:14px;left:2px;top:2px;
+  background:var(--tx3);border-radius:50%;transition:all .2s;}
+.toggle input:checked+.ts{background:var(--ac);border-color:var(--ac);}
+.toggle input:checked+.ts::before{transform:translateX(16px);background:#fff;}
+
+/* ══ QUEUE PANE ══════════════════════ */
+.add-row{display:flex;gap:7px;align-items:flex-start;}
+.add-row textarea{
+  flex:1;background:var(--bg2);border:1px solid var(--bd2);border-radius:7px;
+  color:var(--tx);padding:8px 10px;font-size:12px;font-family:inherit;
+  resize:none;outline:none;min-height:60px;line-height:1.45;
+  transition:border-color .15s,box-shadow .15s;
+}
+.add-row textarea:focus{border-color:var(--ac);box-shadow:0 0 0 2px var(--glow);}
+.add-row textarea::placeholder{color:var(--tx3);}
+.btn-add{
+  width:32px;height:32px;border-radius:8px;border:none;flex-shrink:0;margin-top:2px;
+  background:linear-gradient(135deg,var(--ac),var(--ac2));
+  color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 10px var(--glow);transition:all .15s;
+}
+.btn-add:hover{filter:brightness(1.1);transform:translateY(-1px);}
+
+/* Queue controls row */
+.q-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.q-count{font-size:11px;color:var(--tx3);flex:1;}
+.q-count b{color:var(--ac);}
+.btn-sm{
+  padding:4px 10px;border-radius:6px;border:1px solid var(--bd2);
+  background:var(--bg2);color:var(--tx2);font-size:11px;font-weight:600;
+  cursor:pointer;font-family:inherit;transition:all .15s;
+}
+.btn-sm:hover{border-color:var(--ac);color:var(--ac);}
+.btn-sm.danger:hover{border-color:var(--red);color:var(--red);}
+
+/* Queue list */
+.q-list{display:flex;flex-direction:column;gap:5px;}
+.q-item{
+  background:var(--bg2);border:1px solid var(--bd);border-radius:8px;
+  padding:8px 10px;display:flex;align-items:flex-start;gap:8px;
+  transition:border-color .15s;
+}
+.q-item.running{border-color:var(--ac);box-shadow:0 0 10px var(--glow);}
+.q-item.done{opacity:.5;}
+.q-item.paused{border-color:var(--amber);}
+.q-item.error{border-color:var(--red);}
+.q-num{
+  width:20px;height:20px;border-radius:5px;
+  background:var(--bg3);color:var(--tx3);
+  font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;
+}
+.q-item.running .q-num{background:var(--ac);color:#fff;}
+.q-item.done .q-num{background:var(--green);color:#fff;}
+.q-item.paused .q-num{background:var(--amber);color:#fff;}
+.q-item.error .q-num{background:var(--red);color:#fff;}
+.q-body{flex:1;min-width:0;}
+.q-prompt{font-size:11.5px;color:var(--tx);line-height:1.4;word-break:break-word;}
+.q-status{font-size:10px;color:var(--tx3);margin-top:2px;}
+.q-item.running .q-status{color:var(--ac);}
+.q-item.done .q-status{color:var(--green);}
+.q-item.paused .q-status{color:var(--amber);}
+.q-actions{display:flex;gap:4px;flex-shrink:0;}
+.qa{
+  width:22px;height:22px;border-radius:5px;border:1px solid var(--bd2);
+  background:none;color:var(--tx3);font-size:12px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+.qa:hover{border-color:var(--ac);color:var(--ac);}
+.qa.del:hover{border-color:var(--red);color:var(--red);}
+.qa.play{color:var(--green);}
+.qa.play:hover{border-color:var(--green);}
+
+/* ── Progress section ────────────────── */
+.prog-wrap{
+  background:var(--bg1);border:1px solid var(--ac);border-radius:var(--r);
+  padding:11px 12px;box-shadow:0 0 16px var(--glow);
+}
+.prog-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.prog-status{font-size:11.5px;font-weight:700;color:var(--ac);}
+.prog-frac{font-size:11px;color:var(--tx2);font-weight:600;font-variant-numeric:tabular-nums;}
+.prog-bg{height:4px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-bottom:5px;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--ac),var(--ac2));border-radius:4px;transition:width .4s ease;}
+.prog-prompt{font-size:10.5px;color:var(--tx3);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* Countdown */
+.cd-row{
+  display:none;align-items:center;gap:7px;
+  background:var(--bg2);border:1px solid var(--bd2);
+  border-radius:6px;padding:5px 9px;margin-top:5px;
+}
+.cd-row.on{display:flex;}
+.cd-icon{font-size:12px;}
+.cd-txt{font-size:11px;color:var(--tx2);flex:1;}
+.cd-bg{width:50px;height:3px;background:var(--bd2);border-radius:3px;overflow:hidden;}
+.cd-bar{height:100%;background:var(--amber);border-radius:3px;transition:width .2s linear;}
+.cd-num{font-size:11px;font-weight:700;color:var(--amber);min-width:28px;text-align:right;font-variant-numeric:tabular-nums;}
+
+/* ── Buttons ─────────────────────────── */
+.btn{
+  padding:0 14px;height:38px;border-radius:8px;border:none;
+  font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  transition:all .15s;
+}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+.btn-primary{
+  flex:1;background:linear-gradient(135deg,var(--ac),var(--ac2));
+  color:#fff;box-shadow:0 4px 12px var(--glow);
+}
+.btn-primary:not(:disabled):hover{filter:brightness(1.1);transform:translateY(-1px);}
+.btn-stop{background:transparent;border:1.5px solid var(--red);color:var(--red);padding:0 12px;}
+.btn-stop:hover{background:var(--red);color:#fff;}
+.btn-open{
+  width:100%;background:transparent;border:1px dashed var(--bd2);
+  color:var(--tx3);font-size:11.5px;font-weight:500;
+}
+.btn-open:hover{border-color:var(--ac);color:var(--ac);}
+.btn-row{display:flex;gap:7px;}
+
+/* ── Footer ──────────────────────────── */
+.footer{
+  flex-shrink:0;text-align:center;font-size:10px;color:var(--tx3);
+  padding:7px;border-top:1px solid var(--bd);background:var(--bg1);
+}
+.footer .name{color:var(--ac);font-weight:600;}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="hdr">
+  <div class="logo">⚡</div>
+  <div class="hdr-text">
+    <div class="hdr-title">Flow Automator by Redoun</div>
+    <div class="hdr-sub">Bulk AI image generation</div>
+  </div>
+  <button class="theme-btn" id="theme-btn" title="Toggle theme">🌙</button>
+</div>
+
+<!-- Status -->
+<div class="sw">
+  <div class="sp disconnected" id="sp">
+    <div class="dot r" id="sdot"></div>
+    <span class="st" id="stxt">Checking…</span>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" data-tab="queue">Queue</button>
+  <button class="tab" data-tab="settings">Settings</button>
+</div>
+
+<!-- ══ QUEUE PANE ══════════════════════ -->
+<div class="pane active" id="pane-queue">
+
+  <!-- Add prompt row -->
+  <div class="add-row">
+    <textarea id="new-prompt" placeholder="Type prompt here… (Shift+Enter = add)&#10;Or paste multiple lines to add all at once"></textarea>
+    <button class="btn-add" id="btn-add" title="Add prompt">+</button>
+  </div>
+
+  <!-- Queue controls -->
+  <div class="q-controls">
+    <span class="q-count"><b id="q-pending">0</b> pending · <b id="q-done">0</b> done</span>
+    <button class="btn-sm" id="btn-clear-done">Clear done</button>
+    <button class="btn-sm danger" id="btn-clear-all">Clear all</button>
+  </div>
+
+  <!-- Queue list -->
+  <div class="q-list" id="q-list"></div>
+</div>
+
+<!-- ══ QUEUE FOOTER — always visible, no scrolling required ══ -->
+<div class="queue-footer active" id="queue-footer">
+  <!-- Progress (hidden until running) -->
+  <div class="prog-wrap" id="prog-wrap" style="display:none">
+    <div class="prog-head">
+      <span class="prog-status" id="prog-status">Running…</span>
+      <span class="prog-frac" id="prog-frac">— / —</span>
+    </div>
+    <div class="prog-bg"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="prog-prompt" id="prog-prompt"></div>
+    <div class="cd-row" id="cd-row">
+      <span class="cd-icon">⏱</span>
+      <span class="cd-txt" id="cd-txt">Next prompt in</span>
+      <div class="cd-bg"><div class="cd-bar" id="cd-bar" style="width:100%"></div></div>
+      <span class="cd-num" id="cd-num">—</span>
+    </div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="btn-row">
+    <button class="btn btn-primary" id="btn-start">▶ Start Queue</button>
+    <button class="btn btn-stop" id="btn-stop" style="display:none">■ Stop</button>
+  </div>
+
+  <button class="btn btn-open" id="btn-open-flow" style="display:none">↗ Open Flow in new tab</button>
+</div>
+
+<!-- ══ SETTINGS PANE ══════════════════ -->
+<div class="pane" id="pane-settings">
+
+  <div class="card">
+    <div class="card-title">Delay Between Prompts</div>
+    <div class="field">
+      <div class="lbl">Delay (seconds) — exact, no randomness</div>
+      <input type="number" id="delaySec" value="3" min="1" max="300"/>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Download</div>
+    <div class="tog-row">
+      <span class="tog-lbl">Auto-download images</span>
+      <label class="toggle"><input type="checkbox" id="autoDownload" checked/><span class="ts"></span></label>
+    </div>
+    <div class="g2">
+      <div class="field">
+        <div class="lbl">Quality</div>
+        <select id="quality"><option value="1K">1K</option><option value="2K">2K</option></select>
+      </div>
+      <div class="field">
+        <div class="lbl">Count per prompt</div>
+        <input type="number" id="imageCount" value="1" min="1" max="4"/>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Theme</div>
+    <div class="tog-row" style="margin-bottom:0">
+      <span class="tog-lbl">Light mode</span>
+      <label class="toggle"><input type="checkbox" id="light-toggle"/><span class="ts"></span></label>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">Created with ♥ by <span class="name">Redoun</span></div>
+
+<script src="../panel.js"></script>
+</body>
+</html>

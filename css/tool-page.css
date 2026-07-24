@@ -1,0 +1,42 @@
+:root {
+  --primary: #2563eb;
+  --secondary: #7c3aed;
+  --bg: #f8fafc;
+  --surface: #fff;
+  --border: #e5e7eb;
+  --text: #111827;
+  --muted: #6b7280;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; }
+a { color: inherit; text-decoration: none; }
+.tool-shell { width: min(1180px, calc(100% - 40px)); margin: auto; }
+.tool-header { min-height: 78px; display: flex; align-items: center; justify-content: space-between; gap: 18px; border-bottom: 1px solid var(--border); }
+.tool-brand { display: flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 800; letter-spacing: -.04em; }
+.tool-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; }
+.back-link { color: var(--muted); font-size: .8rem; font-weight: 600; }
+.back-link:hover { color: var(--primary); }
+.tool-intro { display: flex; align-items: end; justify-content: space-between; gap: 20px; padding: 48px 0 30px; }
+.eyebrow { color: var(--primary); font-size: .68rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+h1 { margin: 9px 0 8px; font-size: clamp(1.8rem, 4vw, 3rem); line-height: 1.08; letter-spacing: -.06em; }
+.tool-intro p { max-width: 570px; margin: 0; color: var(--muted); font-size: .9rem; }
+.tool-badge { padding: 8px 12px; border: 1px solid #bbf7d0; border-radius: 99px; background: #f0fdf4; color: #15803d; font-size: .7rem; font-weight: 700; white-space: nowrap; }
+.tool-frame { overflow: hidden; border: 1px solid var(--border); border-radius: 24px; background: #111; box-shadow: 0 20px 55px rgba(15, 23, 42, .12); }
+.tool-frame iframe { display: block; width: 100%; min-height: 1050px; border: 0; }
+.tool-note { margin: 18px 0 48px; color: var(--muted); font-size: .72rem; text-align: center; }
+@media (max-width: 650px) { .tool-shell { width: min(100% - 28px, 1180px); }.tool-header { min-height: 68px; }.tool-intro { align-items: flex-start; flex-direction: column; padding: 34px 0 22px; }.tool-badge { align-self: flex-start; }.tool-frame { border-radius: 16px; }.tool-frame iframe { min-height: 1120px; } }
+
+.extension-hero { padding: 22px; border: 1px solid var(--border); border-radius: 24px; background: linear-gradient(135deg, #eff6ff, #f5f3ff); }
+.extension-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 18px; margin-top: 18px; }
+.extension-card { padding: 24px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); }
+.extension-card h2 { margin: 0 0 9px; font-size: 1.05rem; letter-spacing: -.03em; }
+.extension-card p { margin: 0; color: var(--muted); font-size: .82rem; }
+.feature-list, .install-list { display: grid; gap: 12px; margin: 18px 0 0; padding: 0; list-style: none; }
+.feature-list li, .install-list li { display: flex; gap: 10px; color: var(--muted); font-size: .8rem; }
+.feature-list li::before { content: 'OK'; flex: 0 0 auto; color: #15803d; font-size: .66rem; font-weight: 800; }
+.install-list { counter-reset: step; }.install-list li::before { counter-increment: step; content: counter(step); display: grid; place-items: center; flex: 0 0 22px; height: 22px; border-radius: 7px; background: #dbeafe; color: #1d4ed8; font-size: .7rem; font-weight: 800; }
+.extension-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }.extension-button { min-height: 44px; display: inline-flex; align-items: center; padding: 10px 16px; border-radius: 10px; background: var(--primary); color: #fff; font-size: .78rem; font-weight: 700; }.extension-button.secondary { border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+.extension-note { margin-top: 18px; padding: 13px 15px; border-radius: 12px; background: #fff7ed; color: #9a3412; font-size: .74rem; }
+@media (max-width: 700px) { .extension-grid { grid-template-columns: 1fr; }.extension-hero { padding: 17px; }.extension-card { padding: 20px; } }

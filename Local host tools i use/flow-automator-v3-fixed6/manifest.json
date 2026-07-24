@@ -1,0 +1,57 @@
+{
+  "manifest_version": 3,
+  "name": "Flow Automator by Redoun",
+  "description": "Bulk AI image generation on Google Labs Flow. Created with love by Redoun.",
+  "version": "3.0.0",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "sidePanel",
+    "tabs",
+    "scripting",
+    "downloads"
+  ],
+  "host_permissions": [
+    "https://labs.google/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://labs.google/*"
+      ],
+      "js": [
+        "flowContentScript.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "alwaysActive.js"
+      ],
+      "matches": [
+        "https://labs.google/*"
+      ]
+    }
+  ],
+  "action": {
+    "default_title": "Flow Automator by Redoun",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  },
+  "side_panel": {
+    "default_path": "src/index.html"
+  }
+}
