@@ -1,0 +1,30 @@
+:root {
+  --primary: #2563eb;
+  --secondary: #7c3aed;
+  --accent: #06b6d4;
+  --tool-bg: #f8fafc;
+  --tool-surface: #ffffff;
+  --tool-surface-soft: #f1f5f9;
+  --tool-border: #e5e7eb;
+  --tool-text: #111827;
+  --tool-muted: #6b7280;
+  --bg: var(--tool-bg);
+  --surface: var(--tool-surface);
+  --border: var(--tool-border);
+  --text: var(--tool-text);
+  --muted: var(--tool-muted);
+}
+[data-theme="dark"] { --tool-bg:#0f172a; --tool-surface:#1e293b; --tool-surface-soft:#162235; --tool-border:#334155; --tool-text:#f8fafc; --tool-muted:#cbd5e1; }
+[data-theme="emerald"] { --primary:#059669; --secondary:#0d9488; --accent:#14b8a6; }
+[data-theme="ocean"] { --primary:#0891b2; --secondary:#2563eb; --accent:#06b6d4; }
+[data-theme="royal"] { --primary:#7c3aed; --secondary:#4f46e5; --accent:#a855f7; }
+[data-theme="sunset"] { --primary:#ea580c; --secondary:#db2777; --accent:#f59e0b; }
+[data-theme="rose"] { --primary:#e11d48; --secondary:#be185d; --accent:#f43f5e; }
+[data-theme="midnight"] { --primary:#6366f1; --secondary:#8b5cf6; --accent:#38bdf8; --tool-bg:#080d1d; --tool-surface:#111a33; --tool-surface-soft:#0d1630; --tool-border:#263454; --tool-text:#f8fafc; --tool-muted:#b8c4dc; }
+
+.theme-control select { min-height: 38px; border: 1px solid var(--tool-border); border-radius: 10px; background: var(--tool-surface); color: var(--tool-muted); padding: 8px 28px 8px 10px; font: 600 11px "Plus Jakarta Sans", Inter, sans-serif; cursor: pointer; }
+html[data-theme] .extension-hero { background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 13%, var(--tool-surface)), color-mix(in srgb, var(--secondary) 10%, var(--tool-surface))); }
+html[data-theme] .extension-card { background: var(--tool-surface); border-color: var(--tool-border); }
+html[data-theme] .extension-note { background: color-mix(in srgb, #f59e0b 12%, var(--tool-surface)); color: var(--tool-text); }
+html[data-theme] .btn-convert, html[data-theme] .btn-merge { background: var(--primary); }
+html[data-theme] .btn-zip { background: var(--secondary); }

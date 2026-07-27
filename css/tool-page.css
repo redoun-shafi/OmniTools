@@ -10,12 +10,12 @@
 
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
-body { margin: 0; background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; }
+body { margin: 0; background: var(--tool-bg, var(--bg)); color: var(--tool-text, var(--text)); font-family: "Plus Jakarta Sans", Inter, system-ui, sans-serif; }
 a { color: inherit; text-decoration: none; }
 .tool-shell { width: min(1180px, calc(100% - 40px)); margin: auto; }
-.tool-header { min-height: 78px; display: flex; align-items: center; justify-content: space-between; gap: 18px; border-bottom: 1px solid var(--border); }
-.tool-brand { display: flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 800; letter-spacing: -.04em; }
-.tool-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; }
+.tool-header { min-height: 78px; display: flex; align-items: center; justify-content: space-between; gap: 18px; border-bottom: 1px solid var(--tool-border, var(--border)); position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--tool-bg, var(--bg)) 88%, transparent); backdrop-filter: blur(16px); }
+.tool-brand { display: flex; align-items: center; gap: 10px; color: var(--tool-text, var(--text)); font-size: 1rem; font-weight: 800; letter-spacing: -.04em; }
+.tool-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; box-shadow: 0 9px 20px color-mix(in srgb, var(--primary) 22%, transparent); }
 .back-link { color: var(--muted); font-size: .8rem; font-weight: 600; }
 .back-link:hover { color: var(--primary); }
 .tool-intro { display: flex; align-items: end; justify-content: space-between; gap: 20px; padding: 48px 0 30px; }

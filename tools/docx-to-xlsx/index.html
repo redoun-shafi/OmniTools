@@ -1,726 +1,144 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-theme="light">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>DOCX to XLSX | OmniTools</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<!-- ExcelJS for real .xlsx with embedded images -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#111;display:flex;flex-direction:column;align-items:center;min-height:100vh;font-family:"Plus Jakarta Sans",Arial,sans-serif;padding:0 16px 32px}
-.omni-topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;width:min(1180px,100%);padding:14px 0;margin-bottom:26px;border-bottom:1px solid #334155;background:rgba(15,23,42,.88);backdrop-filter:blur(16px)}
-.omni-brand{display:inline-flex;align-items:center;gap:9px;color:#f8fafc;text-decoration:none;font-weight:800;letter-spacing:-.04em}.omni-mark{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff}.omni-back{color:#93c5fd;text-decoration:none;font-size:12px;font-weight:700}.omni-back:hover{text-decoration:underline}
-.wrap{width:100%;max-width:560px;display:flex;flex-direction:column;align-items:center;gap:18px}
-
-.mode-row{display:flex;border:1px solid #2a2a2a;border-radius:8px;overflow:hidden;width:100%}
-.mode-btn{flex:1;background:#161616;color:#555;border:none;padding:9px;font-size:11px;letter-spacing:.8px;cursor:pointer;transition:background .15s,color .15s}
-.mode-btn.active{background:#252525;color:#ddd}
-.mode-btn:hover:not(.active){background:#1c1c1c;color:#888}
-
-.panel{width:100%;display:none;flex-direction:column;align-items:center;gap:16px}
-.panel.active{display:flex}
-
-.icon-btn{
-  width:80px;height:80px;border-radius:50%;border:none;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:5px;font-size:10px;font-weight:bold;letter-spacing:.8px;color:#fff;
-  transition:transform .15s,filter .15s;flex-shrink:0;
-}
-.icon-btn:hover:not(:disabled){transform:scale(1.08);filter:brightness(1.2)}
-.icon-btn:active:not(:disabled){transform:scale(.96)}
-.icon-btn svg{width:26px;height:26px}
-.icon-btn:disabled{opacity:.3;cursor:not-allowed}
-.btn-docx   {background:#1a3a5c}
-.btn-img    {background:#3a2a10}
-.btn-xlsx   {background:#1a3a1a}
-.btn-convert{background:#222}
-.btn-zip    {background:#1a1a3a}
-.btn-merge  {background:#222}
-
-input[type=file]{display:none}
-
-.dots{display:flex;gap:4px;align-items:center}
-.dot{width:5px;height:5px;border-radius:50%;background:#222}
-
-.upload-row{display:flex;gap:20px;align-items:flex-start;justify-content:center}
-.upload-col{display:flex;flex-direction:column;align-items:center;gap:6px}
-.upload-sub{font-size:10px;letter-spacing:1px;color:#444;text-align:center}
-
-.pill-scroll{max-height:160px;overflow-y:auto;width:100%;display:flex;flex-direction:column;gap:5px}
-.pill{background:#191919;border-radius:24px;padding:6px 12px;display:flex;align-items:center;gap:8px;font-size:11px;color:#888;border:1px solid #242424}
-.pill-ico{font-size:13px;flex-shrink:0}
-.pill-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pill-st{font-size:13px;flex-shrink:0}
-.pill .dl{background:transparent;border:1px solid #2a5a2a;color:#4caf50;border-radius:16px;padding:2px 8px;font-size:10px;cursor:pointer;flex-shrink:0}
-.pill .dl:hover{background:#1a2a1a}
-
-.match-table{width:100%;background:#161616;border-radius:12px;border:1px solid #232323;overflow:hidden;display:none}
-.match-head{display:grid;grid-template-columns:1fr 34px;padding:8px 14px;font-size:10px;color:#3a3a3a;letter-spacing:.8px;border-bottom:1px solid #1e1e1e}
-.match-body{max-height:320px;overflow-y:auto}
-.mrow{display:grid;grid-template-columns:1fr 34px;padding:7px 14px;border-bottom:1px solid #1b1b1b;align-items:center;gap:8px}
-.mrow:last-child{border-bottom:none}
-.mrow.hit .recipe-name{color:#ccc}
-.mrow.miss .recipe-name{color:#555}
-.recipe-name{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mrow .st{text-align:right;font-size:15px;flex-shrink:0}
-
-.img-chip{display:flex;align-items:center;gap:6px;margin-top:2px}
-.img-chip img{width:22px;height:22px;border-radius:4px;object-fit:cover;border:1px solid #333}
-.img-chip span{font-size:10px;color:#4a7a4a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
-
-.manual-upload-btn{
-  background:transparent;border:1px solid #4a2a0a;color:#a06020;
-  border-radius:14px;padding:2px 8px;font-size:10px;cursor:pointer;white-space:nowrap;
-}
-.manual-upload-btn:hover{background:#2a1a08}
-
-.counter{font-size:11px;color:#444;text-align:center}
-.counter b{color:#666}
-.counter .c-hit{color:#3a7a3a}
-.counter .c-miss{color:#7a3a3a}
-
-@keyframes spin{to{transform:rotate(360deg)}}
-.spin{display:inline-block;width:12px;height:12px;border:2px solid #333;border-top-color:#888;border-radius:50%;animation:spin .6s linear infinite}
-
-.divlabel{font-size:10px;color:#333;letter-spacing:1.2px}
-
-/* info badge */
-.badge{font-size:10px;color:#3a6a3a;background:#0e1e0e;border:1px solid #1a3a1a;border-radius:8px;padding:5px 12px;text-align:center;width:100%}
-
-/* OmniTools hosted-tool skin: behavior remains unchanged. */
-body { background: #0f172a; }
-.wrap { max-width: 680px; }
-.mode-row { border-color: #334155; background: #172033; }
-.mode-btn { background: #172033; color: #94a3b8; }
-.mode-btn.active { background: #22304a; color: #f8fafc; }
-.mode-btn:hover:not(.active) { background: #1e293b; color: #cbd5e1; }
-.badge { color: #93c5fd; background: #10264a; border-color: #1d4ed8; }
-.btn-docx { background: #173b69; }.btn-img { background: #17445a; }.btn-xlsx { background: #155e4b; }
-.btn-convert, .btn-merge { background: #22304a; }.btn-zip { background: #312e81; }
-.pill, .match-table { background: #172033; border-color: #334155; }
-.pill { color: #cbd5e1; }.match-head { color: #94a3b8; border-color: #334155; }.mrow { border-color: #26354d; }
-.mrow.hit .recipe-name { color: #f8fafc; }.mrow.miss .recipe-name { color: #94a3b8; }
-.counter { color: #94a3b8; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Convert recipe DOCX files into Canva-ready Excel interiors with matched images.">
+  <title>Canva Bulk Recipe Interior Converter | OmniTools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/tool-theme.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+  <style>
+    :root { --tool-bg:#f7f8fc; --tool-surface:#fff; --tool-surface-soft:#f1f4fa; --tool-border:#e1e6f0; --tool-text:#121827; --tool-muted:#667085; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:var(--tool-bg); color:var(--tool-text); font-family:"Plus Jakarta Sans",sans-serif; }
+    a { color:inherit; text-decoration:none; }
+    button,input { font:inherit; }
+    .shell { width:min(1240px,calc(100% - 40px)); margin:auto; }
+    .topbar { min-height:78px; display:flex; align-items:center; gap:20px; border-bottom:1px solid var(--tool-border); }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:-.04em; }
+    .mark { display:grid; place-items:center; width:36px; height:36px; border-radius:12px; color:#fff; background:linear-gradient(135deg,var(--primary),var(--secondary)); box-shadow:0 10px 24px color-mix(in srgb,var(--primary) 25%,transparent); }
+    .brand small { display:block; color:var(--tool-muted); font-size:10px; font-weight:500; letter-spacing:0; }
+    .top-actions { display:flex; align-items:center; gap:12px; margin-left:auto; }
+    .theme-control select { border:1px solid var(--tool-border); border-radius:10px; background:var(--tool-surface); color:var(--tool-text); padding:9px 28px 9px 10px; font-size:11px; }
+    .back { color:var(--primary); font-size:12px; font-weight:700; }
+    .intro { display:flex; justify-content:space-between; align-items:end; gap:25px; padding:55px 0 30px; }
+    .eyebrow { color:var(--primary); font-size:10px; font-weight:800; letter-spacing:.15em; text-transform:uppercase; }
+    h1 { margin:10px 0 12px; max-width:800px; font-size:clamp(2rem,5vw,4rem); line-height:1.02; letter-spacing:-.07em; }
+    .intro p { max-width:650px; margin:0; color:var(--tool-muted); font-size:14px; line-height:1.8; }
+    .privacy { padding:12px 15px; border:1px solid color-mix(in srgb,var(--primary) 20%,var(--tool-border)); border-radius:14px; color:var(--tool-muted); background:color-mix(in srgb,var(--primary) 5%,var(--tool-surface)); font-size:11px; white-space:nowrap; }
+    .card { border:1px solid var(--tool-border); border-radius:22px; background:var(--tool-surface); box-shadow:0 18px 50px rgba(15,23,42,.06); }
+    .mode-tabs { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:7px; margin-bottom:18px; background:var(--tool-surface-soft); border-radius:16px; }
+    .mode-tab { border:0; border-radius:11px; padding:13px; color:var(--tool-muted); background:transparent; cursor:pointer; font-size:12px; font-weight:800; }
+    .mode-tab.active { color:var(--tool-text); background:var(--tool-surface); box-shadow:0 5px 16px rgba(15,23,42,.08); }
+    .workflow { display:none; padding:22px; }
+    .workflow.active { display:block; }
+    .step-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .step { min-height:170px; display:flex; flex-direction:column; justify-content:space-between; padding:20px; border:1px solid var(--tool-border); border-radius:17px; background:var(--tool-surface-soft); }
+    .step-num { display:grid; place-items:center; width:28px; height:28px; border-radius:9px; color:#fff; background:var(--primary); font-size:11px; font-weight:800; }
+    .step h2 { margin:16px 0 5px; font-size:15px; letter-spacing:-.03em; }
+    .step p { margin:0; color:var(--tool-muted); font-size:11px; line-height:1.6; }
+    .file-button,.primary-button,.secondary-button { display:inline-flex; align-items:center; justify-content:center; min-height:42px; border-radius:11px; cursor:pointer; font-size:12px; font-weight:800; }
+    .file-button { border:1px dashed color-mix(in srgb,var(--primary) 55%,var(--tool-border)); color:var(--primary); background:color-mix(in srgb,var(--primary) 7%,var(--tool-surface)); }
+    .primary-button { border:0; padding:0 18px; color:#fff; background:linear-gradient(135deg,var(--primary),var(--secondary)); box-shadow:0 9px 20px color-mix(in srgb,var(--primary) 22%,transparent); }
+    .secondary-button { border:1px solid var(--tool-border); padding:0 16px; color:var(--tool-text); background:var(--tool-surface); }
+    .file-button input { display:none; }
+    .file-list,.output-list { display:grid; gap:8px; margin-top:14px; max-height:150px; overflow:auto; }
+    .file-pill,.output-pill { display:flex; align-items:center; gap:9px; padding:10px 12px; border:1px solid var(--tool-border); border-radius:11px; color:var(--tool-muted); background:var(--tool-surface); font-size:11px; }
+    .file-pill span:nth-child(2),.output-pill span:nth-child(2) { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
+    .file-status { color:var(--primary); font-weight:800; }
+    .chapter-control { display:none; margin-top:14px; }
+    .chapter-control.visible { display:block; }
+    .chapter-control label { display:block; margin-bottom:7px; color:var(--tool-muted); font-size:11px; font-weight:700; }
+    .chapter-control input { width:100%; height:42px; padding:0 12px; border:1px solid var(--tool-border); border-radius:10px; color:var(--tool-text); background:var(--tool-surface); outline:none; }
+    .chapter-control input:focus { border-color:var(--primary); box-shadow:0 0 0 4px color-mix(in srgb,var(--primary) 12%,transparent); }
+    .step-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
+    .ready-banner { display:none; margin-top:18px; padding:14px 16px; border-radius:13px; color:var(--tool-text); background:color-mix(in srgb,#22c55e 10%,var(--tool-surface)); border:1px solid color-mix(in srgb,#22c55e 30%,var(--tool-border)); font-size:12px; font-weight:700; }
+    .ready-banner.visible { display:block; }
+    .image-stage { display:none; margin-top:20px; padding-top:22px; border-top:1px solid var(--tool-border); }
+    .image-stage.visible { display:block; }
+    .stage-head { display:flex; justify-content:space-between; align-items:end; gap:14px; margin-bottom:15px; }
+    .stage-head h2 { margin:5px 0 0; font-size:20px; letter-spacing:-.05em; }
+    .stage-head p { margin:0; color:var(--tool-muted); font-size:11px; }
+    .image-actions { display:flex; flex-wrap:wrap; gap:10px; }
+    .match-table { margin-top:15px; overflow:hidden; border:1px solid var(--tool-border); border-radius:15px; }
+    .match-head,.match-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) 35px; gap:10px; align-items:center; }
+    .match-head { padding:10px 13px; color:var(--tool-muted); background:var(--tool-surface-soft); font-size:10px; font-weight:800; letter-spacing:.08em; }
+    .match-body { max-height:430px; overflow:auto; }
+    .match-row { min-height:58px; padding:8px 13px; border-top:1px solid var(--tool-border); }
+    .match-row .recipe { overflow:hidden; color:var(--tool-text); font-size:12px; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }
+    .match-row.missing .recipe { color:var(--tool-muted); }
+    .match-image { min-width:0; display:flex; align-items:center; gap:8px; color:var(--tool-muted); font-size:10px; }
+    .match-image img { width:32px; height:32px; flex:0 0 auto; object-fit:cover; border-radius:7px; }
+    .match-image span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .match-actions { display:flex; flex-wrap:wrap; gap:5px; margin-top:4px; }
+    .tiny-button { border:1px solid var(--tool-border); border-radius:8px; padding:4px 7px; color:var(--tool-muted); background:var(--tool-surface); cursor:pointer; font-size:10px; }
+    .tiny-button:hover { color:var(--primary); border-color:var(--primary); }
+    .group-note { margin-top:10px; padding:10px 12px; border-radius:11px; color:var(--tool-muted); background:var(--tool-surface-soft); font-size:11px; }
+    .group-note strong { color:var(--tool-text); }
+    .download-bar { display:flex; flex-wrap:wrap; gap:10px; margin-top:15px; }
+    .empty { padding:25px; color:var(--tool-muted); text-align:center; font-size:12px; }
+    .footer { display:flex; justify-content:space-between; gap:18px; padding:28px 0 38px; color:var(--tool-muted); font-size:11px; }
+    @media (max-width:850px) { .intro { align-items:flex-start; flex-direction:column; }.privacy { white-space:normal; }.step-grid { grid-template-columns:1fr; }.step { min-height:0; gap:14px; } }
+    @media (max-width:620px) { .shell { width:min(100% - 24px,1240px); }.topbar { min-height:68px; }.brand small,.back { display:none; }.intro { padding:38px 0 22px; }.workflow { padding:14px; }.match-head,.match-row { grid-template-columns:minmax(0,1fr) 35px; }.match-head span:nth-child(2),.match-row .match-image { grid-column:1; }.match-row .match-image { grid-row:2; }.match-row .match-status { grid-column:2; grid-row:1 / span 2; }.footer { flex-direction:column; } }
+  </style>
 </head>
 <body>
-<header class="omni-topbar">
-  <a class="omni-brand" href="../../index.html"><span class="omni-mark">O</span> OmniTools</a>
-  <a class="omni-back" href="../../index.html">&lt;- Back to toolbox</a>
-</header>
-<div class="wrap">
-
-<div class="mode-row">
-  <button class="mode-btn active" id="modeA" onclick="setMode('A')">DOCX → XLSX</button>
-  <button class="mode-btn"        id="modeB" onclick="setMode('B')">XLSX + IMAGES</button>
-</div>
-
-<!-- ══════ PANEL A: DOCX → XLSX ══════ -->
-<div class="panel active" id="panelA">
-
-  <div class="badge">Converts DOCX recipes to .xlsx — add images in the next tab</div>
-
-  <label><input type="file" id="inDocx" accept=".docx" multiple>
-    <div class="icon-btn btn-docx">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-      </svg>UPLOAD
-    </div>
-  </label>
-
-  <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-  <div class="pill-scroll" id="docxPills"></div>
-  <div class="counter" id="docxCounter" style="display:none"></div>
-  <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-
-  <button class="icon-btn btn-convert" id="btnConvert" disabled>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
-      <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
-    </svg>CONVERT
-  </button>
-
-  <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-
-  <button class="icon-btn btn-zip" id="btnZipA" disabled>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-      <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-    </svg>ZIP
-  </button>
-</div>
-
-<!-- ══════ PANEL B: XLSX + IMAGES ══════ -->
-<div class="panel" id="panelB">
-
-  <div class="badge">Upload the .xlsx from Panel A + matching images → outputs .xlsx with real embedded images</div>
-
-  <div class="upload-row">
-    <div class="upload-col">
-      <label><input type="file" id="inXlsx" accept=".xlsx,.csv" multiple>
-        <div class="icon-btn btn-xlsx">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-          </svg>XLSX
-        </div>
-      </label>
-      <div class="upload-sub" id="xlsxSub">0 FILES</div>
-    </div>
-
-    <div style="color:#2a2a2a;font-size:22px;padding-top:24px">+</div>
-
-    <div class="upload-col">
-      <label><input type="file" id="inImg" accept="image/*" multiple>
-        <div class="icon-btn btn-img">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21 15 16 10 5 21"/>
-          </svg>IMAGES
-        </div>
-      </label>
-      <div class="upload-sub" id="imgSub">0 IMAGES</div>
-    </div>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="../../index.html"><span class="mark">O</span><span>OmniTools<small>Focused tools for better work</small></span></a>
+      <div class="top-actions"><label class="theme-control"><span class="sr-only">Theme</span><select id="themeSelect" aria-label="Choose theme"><option value="light">Light</option><option value="dark">Dark</option><option value="emerald">Emerald</option><option value="ocean">Ocean</option><option value="royal">Royal</option><option value="sunset">Sunset</option><option value="rose">Rose</option><option value="midnight">Midnight</option></select></label><a class="back" href="../../index.html">Back to toolbox</a></div>
+    </header>
+    <main>
+      <section class="intro"><div><div class="eyebrow">Canva publishing workflow</div><h1>Canva Bulk Recipe<br><span style="color:var(--primary)">Interior Converter</span></h1><p>Turn recipe documents into clean Excel interiors, match your food images automatically, and download production-ready files without uploading anything to a server.</p></div><div class="privacy">Private by design<br><strong>Files stay in your browser</strong></div></section>
+      <section class="card">
+        <div class="mode-tabs"><button class="mode-tab active" data-mode="single">Single Page</button><button class="mode-tab" data-mode="double">Double Page / Chapters</button></div>
+        <div class="workflow active" id="singleWorkflow"><div class="step-grid"><article class="step"><div><span class="step-num">1</span><h2>Upload recipes</h2><p>Select one or more DOCX recipe files.</p></div><label class="file-button"><input id="singleFiles" type="file" accept=".docx" multiple>Choose DOCX files</label></article><article class="step"><div><span class="step-num">2</span><h2>Convert to XLSX</h2><p>Parse recipe titles, details, ingredients, and directions.</p></div><button class="primary-button" id="singleConvert" disabled>Convert recipes</button></article><article class="step"><div><span class="step-num">3</span><h2>Ready for images</h2><p>Add matching images after conversion and download the finished interior.</p></div><strong id="singleCount">0 recipes ready</strong></article></div><div class="file-list" id="singleFileList"></div><div class="ready-banner" id="singleReady"></div></div>
+        <div class="workflow" id="doubleWorkflow"><div class="step-grid"><article class="step"><div><span class="step-num">1</span><h2>Upload chapter DOCX</h2><p>Choose a document containing headings such as Chapter 1: Breakfast.</p></div><label class="file-button"><input id="doubleFiles" type="file" accept=".docx" multiple>Choose DOCX files</label></article><article class="step"><div><span class="step-num">2</span><h2>Name the chapter marker</h2><p>We split each document whenever a heading starts with this marker.</p></div><div class="chapter-control visible"><label for="chapterMarker">Chapter marker</label><input id="chapterMarker" value="Chapter" placeholder="Chapter"></div></article><article class="step"><div><span class="step-num">3</span><h2>Build separate files</h2><p>Every detected chapter becomes its own XLSX download and ZIP entry.</p></div><button class="primary-button" id="doubleConvert" disabled>Convert chapters</button></article></div><div class="file-list" id="doubleFileList"></div><div class="ready-banner" id="doubleReady"></div></div>
+        <div class="image-stage" id="imageStage"><div class="stage-head"><div><div class="eyebrow">Image matching workspace</div><h2>Add images to your converted recipes</h2><p id="stageSummary">Upload images and the converter will compare their filenames with recipe names.</p></div><div class="image-actions"><label class="file-button"><input id="imageFiles" type="file" accept="image/*" multiple>Choose images</label><button class="secondary-button" id="resetTool">Start over</button></div></div><div class="match-table"><div class="match-head"><span>RECIPE / CHAPTER</span><span>IMAGE MATCH</span><span></span></div><div class="match-body" id="matchBody"><div class="empty">Convert a document first.</div></div></div><div class="group-note" id="groupNote">Shared-image groups will be highlighted here after images are matched.</div><div class="download-bar"><button class="primary-button" id="mergeButton" disabled>Merge images</button><button class="secondary-button" id="downloadAll" disabled>Download all XLSX</button><button class="secondary-button" id="downloadZip" disabled>Download ZIP</button></div><div class="output-list" id="outputList"></div></div>
+      </section>
+    </main>
+    <footer class="footer"><span>OmniTools · Canva Bulk Recipe Interior Converter</span><span>DOCX and image processing happens locally in your browser.</span></footer>
   </div>
-
-  <div class="match-table" id="matchTable">
-    <div class="match-head"><span>RECIPE NAME</span><span style="text-align:right">IMG</span></div>
-    <div class="match-body" id="matchBody"></div>
-  </div>
-
-  <div class="counter" id="matchCounter" style="display:none"></div>
-
-  <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-
-  <button class="icon-btn btn-merge" id="btnMerge" disabled>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
-      <line x1="6" y1="9" x2="6" y2="15"/><line x1="9" y1="6" x2="15" y2="6"/>
-      <line x1="9" y1="18" x2="15" y2="18"/>
-    </svg>MERGE
-  </button>
-
-  <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-  <div class="pill-scroll" id="outPills"></div>
-
-  <button class="icon-btn btn-zip" id="btnZipB" disabled>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-      <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-    </svg>ZIP
-  </button>
-</div>
-
-</div><!-- /wrap -->
-<script>
-// ══════════════════════════════ UTILS ═══════════════════════════
-function setMode(m){
-  ['A','B'].forEach(x=>{
-    document.getElementById('panel'+x).classList.toggle('active',x===m);
-    document.getElementById('mode'+x).classList.toggle('active',x===m);
-  });
-}
-
-// ── ZIP builder ──────────────────────────────────────────────
-function crc32(d){
-  let c=0xFFFFFFFF;
-  for(let i=0;i<d.length;i++){c^=d[i];for(let j=0;j<8;j++)c=(c&1)?(c>>>1)^0xEDB88320:c>>>1;}
-  return(c^0xFFFFFFFF)>>>0;
-}
-function buildZip(entries){
-  const enc2=new TextEncoder(),lo=[],cd=[];let off=0;
-  for(const e of entries){
-    const nb=enc2.encode(e.name),db=e.bytes instanceof Uint8Array?e.bytes:new Uint8Array(e.bytes);
-    const crc=crc32(db);
-    const lh=new Uint8Array(30+nb.length),lv=new DataView(lh.buffer);
-    lv.setUint32(0,0x04034b50,true);lv.setUint16(4,20,true);lv.setUint32(14,crc,true);
-    lv.setUint32(18,db.length,true);lv.setUint32(22,db.length,true);
-    lv.setUint16(26,nb.length,true);lh.set(nb,30);
-    const ch=new Uint8Array(46+nb.length),cv=new DataView(ch.buffer);
-    cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);
-    cv.setUint32(16,crc,true);cv.setUint32(20,db.length,true);cv.setUint32(24,db.length,true);
-    cv.setUint16(28,nb.length,true);cv.setUint32(42,off,true);ch.set(nb,46);
-    lo.push(lh,db);cd.push(ch);off+=lh.length+db.length;
-  }
-  const cdSz=cd.reduce((s,c)=>s+c.length,0);
-  const eocd=new Uint8Array(22),ev=new DataView(eocd.buffer);
-  ev.setUint32(0,0x06054b50,true);ev.setUint16(8,entries.length,true);
-  ev.setUint16(10,entries.length,true);ev.setUint32(12,cdSz,true);ev.setUint32(16,off,true);
-  const parts=[...lo,...cd,eocd],tot=parts.reduce((s,p)=>s+p.length,0);
-  const out=new Uint8Array(tot);let pos=0;
-  for(const p of parts){out.set(p,pos);pos+=p.length;}
-  return out;
-}
-const enc=new TextEncoder();
-function dlBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();}
-
-// ── Image name matching ──────────────────────────────────────
-function cleanImgName(filename){
-  return filename
-    .replace(/\.[^.]+$/,'')
-    .replace(/_\d{12,}$/,'')
-    .replace(/_/g,' ')
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g,'')
-    .replace(/\s+/g,' ').trim();
-}
-function cleanTitle(t){
-  return t.toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
-}
-function matchScore(title,imgClean){
-  const tw=cleanTitle(title).split(' ').filter(w=>w.length>2);
-  if(!tw.length)return 0;
-  const hits=tw.filter(w=>imgClean.includes(w)).length;
-  return hits/tw.length;
-}
-function findImage(title,imgList){
-  let best=null,bestScore=0;
-  for(const img of imgList){
-    const s=matchScore(title,img.clean);
-    if(s>bestScore){bestScore=s;best=img;}
-  }
-  return bestScore>=0.6?best:null;
-}
-
-// ── Pill helpers ─────────────────────────────────────────────
-function addPill(listId,icon,name,status,onDl){
-  const l=document.getElementById(listId);
-  const p=document.createElement('div');p.className='pill';
-  p.innerHTML=`<span class="pill-ico">${icon}</span><span class="pill-name" title="${name}">${name}</span><span class="pill-st" id="pst_${name.replace(/\W/g,'_')}">${status}</span>`;
-  if(onDl){const b=document.createElement('button');b.className='dl';b.textContent='↓';b.onclick=onDl;p.appendChild(b);}
-  l.appendChild(p);
-  return p;
-}
-
-// ── dataUrl → ArrayBuffer ────────────────────────────────────
-function dataUrlToBuffer(dataUrl){
-  const base64=dataUrl.split(',')[1];
-  const bin=atob(base64);
-  const buf=new Uint8Array(bin.length);
-  for(let i=0;i<bin.length;i++)buf[i]=bin.charCodeAt(i);
-  return buf.buffer;
-}
-
-function dataUrlToExtension(dataUrl){
-  const mime=dataUrl.split(';')[0].split(':')[1]||'';
-  const map={'image/jpeg':'jpeg','image/jpg':'jpeg','image/png':'png','image/gif':'gif','image/webp':'webp','image/bmp':'bmp'};
-  return map[mime]||'png';
-}
-
-// ══════════════════════════════ XLSX BUILDER ══════════════════
-// Builds a real .xlsx from recipe rows + optional image map
-// imageMap: { title (string) → { dataUrl, name } }
-async function buildXlsx(rows, imageMap){
-  imageMap = imageMap || {};
-  const wb = new ExcelJS.Workbook();
-  wb.creator = 'DOCX→XLSX Converter';
-  const ws = wb.addWorksheet('Recipes');
-
-  // Determine columns from first row
-  const firstRow = rows[0] || {};
-  const keys = Object.keys(firstRow);
-
-  // Header row
-  const headerRow = ws.addRow(keys);
-  headerRow.font = {bold:true, color:{argb:'FFFFFFFF'}};
-  headerRow.fill = {type:'pattern', pattern:'solid', fgColor:{argb:'FF1E3A5F'}};
-  headerRow.height = 20;
-
-  // Column widths
-  keys.forEach((k,i)=>{
-    const col = ws.getColumn(i+1);
-    col.key = k;
-    if(k.endsWith('_Image')) col.width = 22;
-    else if(k.endsWith('_Title')) col.width = 28;
-    else if(k.endsWith('_Ingredients')||k.endsWith('_Directions')) col.width = 40;
-    else col.width = 18;
-  });
-
-  // Data rows — image columns get tall rows
-  const IMAGE_ROW_HEIGHT = 120; // px ≈ 90pt
-  const dataRows = [];
-  for(const row of rows){
-    const values = keys.map(k => row[k]||'');
-    const xlRow = ws.addRow(values);
-    xlRow.alignment = {wrapText:true, vertical:'top'};
-
-    // Check if this row has any images
-    const hasImg = keys.some(k => k.endsWith('_Image') && row[k]);
-    if(hasImg) xlRow.height = IMAGE_ROW_HEIGHT;
-
-    dataRows.push(xlRow);
-  }
-
-  // Embed images into image columns
-  const imgColIndices = keys.reduce((acc,k,i)=>{if(k.endsWith('_Image'))acc.push({key:k,col:i});return acc;},[]);
-
-  for(let ri=0;ri<rows.length;ri++){
-    const row = rows[ri];
-    const xlRowNum = ri + 2; // 1-indexed, row 1 is header
-
-    for(const {key,col} of imgColIndices){
-      // Determine which title this image col belongs to
-      const titleKey = key.replace('_Image','_Title');
-      const title = (row[titleKey]||'').trim();
-
-      // Find image: check imageMap first, then dataUrl already in row
-      let imgEntry = title ? imageMap[title] : null;
-      if(!imgEntry && row[key] && row[key].startsWith('data:')){
-        imgEntry = {dataUrl: row[key], name: 'image'};
-      }
-
-      if(!imgEntry || !imgEntry.dataUrl) continue;
-
-      try{
-        const ext = dataUrlToExtension(imgEntry.dataUrl);
-        const buf = dataUrlToBuffer(imgEntry.dataUrl);
-        const imgId = wb.addImage({buffer: buf, extension: ext});
-
-        // Place image inside the cell (tl = top-left corner of cell)
-        ws.addImage(imgId, {
-          tl: { col: col, row: xlRowNum - 1 },
-          br: { col: col + 1, row: xlRowNum },
-          editAs: 'oneCell'
-        });
-
-        // Clear the cell text (don't want the data URL as text)
-        ws.getCell(xlRowNum, col+1).value = '';
-      }catch(e){
-        console.warn('Image embed failed for', title, e);
-      }
-    }
-  }
-
-  // Freeze top row
-  ws.views = [{state:'frozen', ySplit:1}];
-
-  // Generate buffer
-  const buffer = await wb.xlsx.writeBuffer();
-  return new Uint8Array(buffer);
-}
-
-// ══════════════════════════════ PANEL A ══════════════════════
-let docxFiles=[];
-
-function clean(t){return t.replace(/\s+/g,' ').trim();}
-function parseRecipes(text){
-  const lines=text.split('\n').map(clean).filter(l=>l);
-  let R=[],cur=null,sec=null,dc=1;
-  for(const line of lines){
-    const lo=line.toLowerCase();
-    if(lo.startsWith('recipe title:')){
-      if(cur)R.push(cur);
-      cur={Title:line.split(':')[1]?.trim()||'',Prep:'',Total:'',Serves:'',Ingredients:'',Directions:'',Notes:''};
-      sec=null;dc=1;continue;
-    }
-    if(!cur)continue;
-    if(lo.startsWith('prep time')){cur.Prep=line.split(':')[1]?.trim()||'';continue;}
-    if(lo.startsWith('total time')){cur.Total=line.split(':')[1]?.trim()||'';continue;}
-    if(lo.startsWith('serves')){cur.Serves=line.split(':')[1]?.trim()||'';continue;}
-    if(lo.startsWith('ingredients')){sec='I';continue;}
-    if(lo.startsWith('directions')){sec='D';continue;}
-    if(lo.startsWith('notes')||lo.startsWith('nutrition')){sec='N';continue;}
-    if(sec==='I')cur.Ingredients+='• '+line+'\n';
-    if(sec==='D')cur.Directions+=dc+++'. '+line+'\n';
-    if(sec==='N')cur.Notes+='• '+line+'\n';
-  }
-  if(cur)R.push(cur);return R;
-}
-
-function makeRows(recipes){
-  const rows=[];
-  for(let i=0;i<recipes.length;i+=2){
-    const t=recipes[i],b=recipes[i+1]||{};
-    rows.push({
-      Top_Title:t.Title||'',
-      Top_Prep:t.Prep||'',
-      Top_Total:t.Total||'',
-      Top_Serves:t.Serves||'',
-      Top_Ingredients:t.Ingredients||'',
-      Top_Directions:t.Directions||'',
-      Top_Notes:t.Notes||'',
-      Top_Image:'',
-      Bottom_Title:b.Title||'',
-      Bottom_Prep:b.Prep||'',
-      Bottom_Total:b.Total||'',
-      Bottom_Serves:b.Serves||'',
-      Bottom_Ingredients:b.Ingredients||'',
-      Bottom_Directions:b.Directions||'',
-      Bottom_Notes:b.Notes||'',
-      Bottom_Image:''
-    });
-  }
-  return rows;
-}
-
-function updateDocxCtr(){
-  const done=docxFiles.filter(f=>f.status==='done').length,tot=docxFiles.length;
-  const el=document.getElementById('docxCounter');
-  el.style.display=tot?'block':'none';
-  el.innerHTML=`<b>${done}</b> / ${tot} ready`;
-}
-
-document.getElementById('inDocx').addEventListener('change',function(e){
-  const nf=[...e.target.files].filter(f=>f.name.toLowerCase().endsWith('.docx'));
-  for(const f of nf){
-    const base=f.name.replace(/\.docx$/i,'');
-    const pill=addPill('docxPills','📄',f.name,'⏳',null);
-    docxFiles.push({file:f,base,status:'idle',rows:null,pill});
-  }
-  document.getElementById('btnConvert').disabled=false;
-  updateDocxCtr();this.value='';
-});
-
-document.getElementById('btnConvert').addEventListener('click',async()=>{
-  document.getElementById('btnConvert').disabled=true;
-  for(const e of docxFiles.filter(f=>f.status==='idle')){
-    e.pill.querySelector('.pill-st').innerHTML='<span class="spin"></span>';
-    try{
-      const ab=await e.file.arrayBuffer();
-      const r=await mammoth.extractRawText({arrayBuffer:ab});
-      const rec=parseRecipes(r.value);
-      if(!rec.length)throw new Error('No recipes found');
-      e.rows=makeRows(rec);
-      e.status='done';
-      e.pill.querySelector('.pill-st').textContent='✅';
-      const b=document.createElement('button');b.className='dl';b.textContent='↓';
-      b.onclick=async()=>{
-        const bytes=await buildXlsx(e.rows,{});
-        dlBlob(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),e.base+'.xlsx');
-      };
-      e.pill.appendChild(b);
-    }catch(err){
-      console.error(err);
-      e.status='error';
-      e.pill.querySelector('.pill-st').textContent='❌';
-    }
-    updateDocxCtr();
-  }
-  document.getElementById('btnZipA').disabled=!docxFiles.some(f=>f.status==='done');
-  document.getElementById('btnConvert').disabled=docxFiles.every(f=>f.status!=='idle');
-});
-
-document.getElementById('btnZipA').addEventListener('click',async()=>{
-  const ready=docxFiles.filter(f=>f.status==='done');
-  if(!ready.length)return;
-  document.getElementById('btnZipA').disabled=true;
-  document.getElementById('btnZipA').querySelector('svg').style.opacity='0.3';
-  const zipEntries=[];
-  for(const f of ready){
-    const bytes=await buildXlsx(f.rows,{});
-    zipEntries.push({name:f.base+'.xlsx',bytes});
-  }
-  dlBlob(new Blob([buildZip(zipEntries)],{type:'application/zip'}),'recipes_xlsx.zip');
-  document.getElementById('btnZipA').disabled=false;
-  document.getElementById('btnZipA').querySelector('svg').style.opacity='1';
-});
-
-// ══════════════════════════════ PANEL B ══════════════════════
-let xlsxEntries=[];  // {file, base, rows:[{...}], status}
-let imgList=[];      // {file, name, clean, dataUrl}
-let manualMap={};    // title → {dataUrl, name}
-
-function readFileText(f){return new Promise(r=>{const fr=new FileReader();fr.onload=e=>r(e.target.result);fr.readAsText(f);})}
-function readDataUrl(f){return new Promise(r=>{const fr=new FileReader();fr.onload=e=>r(e.target.result);fr.readAsDataURL(f);})}
-function readArrayBuffer(f){return new Promise(r=>{const fr=new FileReader();fr.onload=e=>r(e.target.result);fr.readAsArrayBuffer(f);})}
-
-// Load XLSX or CSV files
-document.getElementById('inXlsx').addEventListener('change',async function(e){
-  const nf=[...e.target.files];
-  for(const f of nf){
-    const name=f.name.toLowerCase();
-    const base=f.name.replace(/\.(xlsx|csv)$/i,'');
-    let rows=[];
-
-    if(name.endsWith('.csv')){
-      const text=await readFileText(f);
-      rows=Papa.parse(text,{header:true,skipEmptyLines:true}).data;
-    } else if(name.endsWith('.xlsx')){
-      try{
-        const ab=await readArrayBuffer(f);
-        const wb2=new ExcelJS.Workbook();
-        await wb2.xlsx.load(ab);
-        const ws2=wb2.worksheets[0];
-        if(!ws2) continue;
-        const headers=[];
-        ws2.getRow(1).eachCell((cell)=>{headers.push(cell.value||'');});
-        ws2.eachRow((row,ri)=>{
-          if(ri===1)return;
-          const obj={};
-          row.eachCell((cell,ci)=>{
-            const key=headers[ci-1];
-            if(key) obj[key]=typeof cell.value==='object'&&cell.value!==null&&cell.value.text?cell.value.text:(cell.value||'');
-          });
-          if(Object.keys(obj).length) rows.push(obj);
-        });
-      }catch(err){
-        console.error('XLSX read error',err);
-        continue;
-      }
-    } else continue;
-
-    xlsxEntries.push({file:f,base,rows,status:'idle'});
-  }
-  document.getElementById('xlsxSub').textContent=xlsxEntries.length+' FILES';
-  rebuildTable();
-  this.value='';
-});
-
-// Load images
-document.getElementById('inImg').addEventListener('change',async function(e){
-  const nf=[...e.target.files].filter(f=>f.type.startsWith('image/'));
-  for(const f of nf){
-    const dataUrl=await readDataUrl(f);
-    imgList.push({file:f,name:f.name,clean:cleanImgName(f.name),dataUrl});
-  }
-  document.getElementById('imgSub').textContent=imgList.length+' IMAGES';
-  rebuildTable();this.value='';
-});
-
-function getAllTitles(){
-  const seen=new Set();
-  for(const e of xlsxEntries){
-    for(const row of e.rows){
-      if(row.Top_Title&&String(row.Top_Title).trim())seen.add(String(row.Top_Title).trim());
-      if(row.Bottom_Title&&String(row.Bottom_Title).trim())seen.add(String(row.Bottom_Title).trim());
-    }
-  }
-  return [...seen];
-}
-
-function rebuildTable(){
-  if(!xlsxEntries.length)return;
-  const titles=getAllTitles();
-  const body=document.getElementById('matchBody');
-  body.innerHTML='';
-  let hits=0,misses=0;
-
-  for(const title of titles){
-    const img=manualMap[title]||findImage(title,imgList);
-    const isHit=!!img;
-    isHit?hits++:misses++;
-
-    const row=document.createElement('div');
-    row.className='mrow '+(isHit?'hit':'miss');
-    row.dataset.title=title;
-
-    const left=document.createElement('div');
-    left.innerHTML=`<div class="recipe-name" title="${title}">${title}</div>`;
-
-    if(isHit){
-      const chip=document.createElement('div');
-      chip.className='img-chip';
-      chip.innerHTML=`<img src="${img.dataUrl}" alt=""><span>${img.name}</span>`;
-      left.appendChild(chip);
-    } else {
-      const manBtn=document.createElement('button');
-      manBtn.className='manual-upload-btn';
-      manBtn.textContent='+ upload image';
-      manBtn.onclick=()=>triggerManual(title,row);
-      left.appendChild(manBtn);
-    }
-
-    const right=document.createElement('div');
-    right.className='st';
-    right.textContent=isHit?'✅':'❌';
-
-    row.appendChild(left);row.appendChild(right);
-    body.appendChild(row);
-  }
-
-  document.getElementById('matchTable').style.display='block';
-  const ctr=document.getElementById('matchCounter');
-  ctr.style.display='block';
-  ctr.innerHTML=`<span class="c-hit"><b>${hits}</b> matched</span> · <span class="c-miss"><b>${misses}</b> missing</span>`;
-  document.getElementById('btnMerge').disabled=!xlsxEntries.length;
-}
-
-function triggerManual(title,rowEl){
-  const inp=document.createElement('input');
-  inp.type='file';inp.accept='image/*';
-  inp.onchange=async()=>{
-    const f=inp.files[0];if(!f)return;
-    const dataUrl=await readDataUrl(f);
-    manualMap[title]={dataUrl,name:f.name};
-    imgList.push({file:f,name:f.name,clean:cleanImgName(f.name),dataUrl});
-    rebuildTable();
-  };
-  inp.click();
-}
-
-// ── MERGE → real XLSX with embedded images ───────────────────
-document.getElementById('btnMerge').addEventListener('click',async()=>{
-  document.getElementById('btnMerge').disabled=true;
-  document.getElementById('outPills').innerHTML='';
-  const zipEntries=[];
-
-  for(const entry of xlsxEntries){
-    // Build image map for this entry
-    const imgMap={};
-    for(const row of entry.rows){
-      const topTitle=(row.Top_Title||'').trim();
-      const botTitle=(row.Bottom_Title||'').trim();
-      if(topTitle){
-        const img=manualMap[topTitle]||findImage(topTitle,imgList);
-        if(img) imgMap[topTitle]=img;
-      }
-      if(botTitle){
-        const img=manualMap[botTitle]||findImage(botTitle,imgList);
-        if(img) imgMap[botTitle]=img;
-      }
-    }
-
-    // Build augmented rows (strip any old dataUrl values from image cols, we embed properly)
-    const cleanRows=entry.rows.map(row=>{
-      const r=Object.assign({},row);
-      // Remove old base64 strings from image columns (they won't be embedded as text)
-      if('Top_Image' in r) r.Top_Image='';
-      if('Bottom_Image' in r) r.Bottom_Image='';
-      return r;
-    });
-
-    try{
-      entry.pill_spinner=document.createElement('div');
-      entry.pill_spinner.className='pill';
-      entry.pill_spinner.innerHTML=`<span class="pill-ico">📊</span><span class="pill-name">${entry.base}.xlsx</span><span class="pill-st"><span class="spin"></span></span>`;
-      document.getElementById('outPills').appendChild(entry.pill_spinner);
-
-      const bytes=await buildXlsx(cleanRows,imgMap);
-      entry.status='done';
-      entry.bytes=bytes;
-
-      entry.pill_spinner.querySelector('.pill-st').textContent='✅';
-      const b=document.createElement('button');b.className='dl';b.textContent='↓';
-      b.onclick=()=>dlBlob(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),entry.base+'_with_images.xlsx');
-      entry.pill_spinner.appendChild(b);
-
-      zipEntries.push({name:entry.base+'_with_images.xlsx',bytes});
-    }catch(err){
-      console.error('Merge error',err);
-      if(entry.pill_spinner) entry.pill_spinner.querySelector('.pill-st').textContent='❌';
-    }
-  }
-
-  if(zipEntries.length){
-    document.getElementById('btnZipB').disabled=false;
-    document.getElementById('btnZipB')._zip=zipEntries;
-  }
-  document.getElementById('btnMerge').disabled=false;
-});
-
-document.getElementById('btnZipB').addEventListener('click',async function(){
-  const e=this._zip;if(!e||!e.length)return;
-  dlBlob(new Blob([buildZip(e)],{type:'application/zip'}),'recipes_merged_xlsx.zip');
-});
-</script>
+  <script src="../../js/theme.js"></script>
+  <script>
+    const $=id=>document.getElementById(id), modes=document.querySelectorAll('.mode-tab');
+    let mode='single', sourceFiles=[], entries=[], images=[], imageMap={}, merged=[], removed=new Set();
+    const colors=['#e0f2fe','#fef3c7','#dcfce7','#fce7f3','#ede9fe','#ffedd5','#cffafe','#fee2e2'];
+    function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+    function crc32(d){let c=0xffffffff;for(const byte of d){c^=byte;for(let i=0;i<8;i++)c=(c&1)?(c>>>1)^0xedb88320:c>>>1;}return(c^0xffffffff)>>>0;}
+    function zip(entries){const e=new TextEncoder(),local=[],central=[];let offset=0;for(const item of entries){const n=e.encode(item.name),d=item.bytes instanceof Uint8Array?item.bytes:new Uint8Array(item.bytes),crc=crc32(d),lh=new Uint8Array(30+n.length),lv=new DataView(lh.buffer),ch=new Uint8Array(46+n.length),cv=new DataView(ch.buffer);lv.setUint32(0,0x04034b50,true);lv.setUint16(4,20,true);lv.setUint32(14,crc,true);lv.setUint32(18,d.length,true);lv.setUint32(22,d.length,true);lv.setUint16(26,n.length,true);lh.set(n,30);cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);cv.setUint32(16,crc,true);cv.setUint32(20,d.length,true);cv.setUint32(24,d.length,true);cv.setUint16(28,n.length,true);cv.setUint32(42,offset,true);ch.set(n,46);local.push(lh,d);central.push(ch);offset+=lh.length+d.length;}const size=central.reduce((n,x)=>n+x.length,0),end=new Uint8Array(22),v=new DataView(end.buffer);v.setUint32(0,0x06054b50,true);v.setUint16(8,entries.length,true);v.setUint16(10,entries.length,true);v.setUint32(12,size,true);v.setUint32(16,offset,true);const all=[...local,...central,end],out=new Uint8Array(all.reduce((n,x)=>n+x.length,0));let p=0;for(const part of all){out.set(part,p);p+=part.length;}return out;}
+    function norm(value){return String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();}
+    function imageNorm(name){return norm(name.replace(/\.[^.]+$/,'').replace(/_\d{8,}(_\d+)?$/,'').replace(/[_-]/g,' '));}
+    function match(title){const words=norm(title).split(' ').filter(Boolean);let best=null,score=0;for(const img of images){const iw=new Set(img.normal.split(' ')),hits=words.filter(word=>iw.has(word)).length,current=words.length?hits/words.length:0;if(current>score){score=current;best=img;}}return score>=.5?best:null;}
+    function textFile(file){return file.text();}
+    function parseRecipes(text){const lines=text.split(/\r?\n/).map(line=>line.replace(/\s+/g,' ').trim()).filter(Boolean),recipes=[];let current=null,section='',direction=1;for(const line of lines){const low=line.toLowerCase();if(low.startsWith('recipe title:')){if(current)recipes.push(current);current={Title:line.slice(line.indexOf(':')+1).trim(),Prep:'',Total:'',Serves:'',Ingredients:'',Directions:'',Notes:''};section='';direction=1;continue;}if(!current)continue;if(low.startsWith('prep time')){current.Prep=line.split(':').slice(1).join(':').trim();continue;}if(low.startsWith('total time')){current.Total=line.split(':').slice(1).join(':').trim();continue;}if(low.startsWith('serves')){current.Serves=line.split(':').slice(1).join(':').trim();continue;}if(low.startsWith('ingredients')){section='ingredients';continue;}if(low.startsWith('directions')){section='directions';continue;}if(low.startsWith('notes')||low.startsWith('nutrition')){section='notes';continue;}if(section==='ingredients')current.Ingredients+='• '+line+'\n';if(section==='directions')current.Directions+=direction+++'. '+line+'\n';if(section==='notes')current.Notes+='• '+line+'\n';}if(current)recipes.push(current);return recipes;}
+    function rows(recipes){const result=[];for(let i=0;i<recipes.length;i+=2){const a=recipes[i],b=recipes[i+1]||{};result.push({Top_Title:a.Title||'',Top_Prep:a.Prep||'',Top_Total:a.Total||'',Top_Serves:a.Serves||'',Top_Ingredients:a.Ingredients||'',Top_Directions:a.Directions||'',Top_Notes:a.Notes||'',Top_Image:'',Bottom_Title:b.Title||'',Bottom_Prep:b.Prep||'',Bottom_Total:b.Total||'',Bottom_Serves:b.Serves||'',Bottom_Ingredients:b.Ingredients||'',Bottom_Directions:b.Directions||'',Bottom_Notes:b.Notes||'',Bottom_Image:''});}return result;}
+    function splitChapters(text,marker){const re=new RegExp('^'+marker.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\s*\\d*\\s*[:\\-]?\\s*(.*)$','i'),parts=[],lines=text.split(/\r?\n/),current=[];let name='Chapter 1',number=0;for(const raw of lines){const line=raw.trim(),hit=line.match(re);if(hit){if(current.join('\n').trim())parts.push({name,recipes:parseRecipes(current.join('\n'))});number++;name=(hit[1]||(`${marker} ${number}`)).trim();current.length=0;}else current.push(raw);}if(current.join('\n').trim())parts.push({name,recipes:parseRecipes(current.join('\n'))});return parts.filter(part=>part.recipes.length);}
+    function showFiles(listId){$(listId).innerHTML=sourceFiles.map(file=>`<div class="file-pill"><span>DOCX</span><span>${file.name}</span><span class="file-status">ready</span></div>`).join('');}
+    function setMode(next){mode=next;modes.forEach(button=>button.classList.toggle('active',button.dataset.mode===next));$('singleWorkflow').classList.toggle('active',next==='single');$('doubleWorkflow').classList.toggle('active',next==='double');}
+    modes.forEach(button=>button.onclick=()=>setMode(button.dataset.mode));
+    function bindUpload(inputId,convertId,listId){$(inputId).onchange=event=>{sourceFiles=[...event.target.files].filter(file=>file.name.toLowerCase().endsWith('.docx'));showFiles(listId);$(convertId).disabled=!sourceFiles.length;event.target.value='';};}
+    bindUpload('singleFiles','singleConvert','singleFileList');bindUpload('doubleFiles','doubleConvert','doubleFileList');
+    function chapterEntries(file,text){if(mode==='single')return [{base:file.name.replace(/\.docx$/i,''),rows:rows(parseRecipes(text))}];const parts=splitChapters(text,$('chapterMarker').value.trim()||'Chapter');return parts.map((part,index)=>({base:(part.name||`Chapter ${index+1}`).replace(/[^a-z0-9]+/gi,'_').replace(/^_|_$/g,''),rows:rows(part.recipes)}));}
+    async function convert(){if(!sourceFiles.length)return;entries=[];const button=mode==='single'?$('singleConvert'):$('doubleConvert');button.disabled=true;button.textContent='Converting...';for(const file of sourceFiles){const result=await mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()});const parts=chapterEntries(file,result.value);for(const part of parts){if(part.rows.length)entries.push(part);}}button.textContent='Convert '+(mode==='single'?'recipes':'chapters');button.disabled=false;renderReady();$('imageStage').classList.add('visible');$('imageStage').scrollIntoView({behavior:'smooth',block:'start'});}
+    $('singleConvert').onclick=convert;$('doubleConvert').onclick=convert;
+    function renderReady(){const count=entries.reduce((n,e)=>n+e.rows.reduce((x,row)=>x+(row.Top_Title?1:0)+(row.Bottom_Title?1:0),0),0),message=mode==='single'?`${count} recipes converted and ready for images.`:`${entries.length} separate chapter workbooks created, containing ${count} recipes.`;const banner=$(mode==='single'?'singleReady':'doubleReady');banner.textContent=message;banner.classList.add('visible');$(mode==='single'?'singleCount':'doubleReady').textContent=mode==='single'?`${count} recipes ready`:`${entries.length} chapters ready`;$('stageSummary').textContent=`${entries.length} workbook${entries.length===1?'':'s'} ready. Upload images to match recipe names.`;renderMatches();}
+    $('imageFiles').onchange=async event=>{for(const file of [...event.target.files].filter(file=>file.type.startsWith('image/'))){images.push({name:file.name,normal:imageNorm(file.name),dataUrl:await fileData(file)});}event.target.value='';renderMatches();};
+    function fileData(file){return new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.readAsDataURL(file);});}
+    function titles(){const all=[];entries.forEach(entry=>entry.rows.forEach(row=>[row.Top_Title,row.Bottom_Title].forEach(title=>{if(title&& !all.includes(title))all.push(title);})));return all;}
+    function renderMatches(){const all=titles(),resolved=all.map(title=>({title,img:removed.has(title)?null:(imageMap[title]||match(title))})),groups={};resolved.forEach(item=>{if(item.img){groups[item.img.normal]??=[];groups[item.img.normal].push(item.title);}});const groupIds={};let group=0;Object.entries(groups).forEach(([key,list])=>{if(list.length>1)groupIds[key]=group++});$('matchBody').innerHTML=resolved.length?resolved.map(item=>{const color=item.img&&groupIds[item.img.normal]!==undefined?colors[groupIds[item.img.normal]%colors.length]:'';return `<div class="match-row ${item.img?'':'missing'}" style="${color?`background:${color}22;border-left:4px solid ${color}`:''}"><div class="recipe" title="${item.title}">${item.title}<div class="match-actions"><button class="tiny-button" data-upload="${encodeURIComponent(item.title)}">${item.img?'Change image':'Upload image'}</button>${item.img?`<button class="tiny-button" data-remove="${encodeURIComponent(item.title)}">Remove</button>`:''}</div></div><div class="match-image">${item.img?`<img src="${item.img.dataUrl}" alt=""><span>${item.img.name}</span>`:'<span>No match found</span>'}</div><div class="match-status">${item.img?'✓':'!'}</div></div>`;}).join(''):'<div class="empty">Convert a document first.</div>';const shared=Object.values(groups).filter(list=>list.length>1);$('groupNote').innerHTML=shared.length?`<strong>${shared.length} shared image group${shared.length===1?'':'s'}</strong> highlighted with matching colors. Recipes using the same image are easy to spot.`:'Shared-image groups will be highlighted here after images are matched.';$('mergeButton').disabled=!entries.length;$('matchBody').querySelectorAll('[data-upload]').forEach(button=>button.onclick=()=>manual(decodeURIComponent(button.dataset.upload)));$('matchBody').querySelectorAll('[data-remove]').forEach(button=>button.onclick=()=>{const title=decodeURIComponent(button.dataset.remove);delete imageMap[title];removed.add(title);renderMatches();});}
+    function manual(title){const input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=async()=>{const file=input.files[0];if(file){removed.delete(title);imageMap[title]={name:file.name,dataUrl:await fileData(file),normal:imageNorm(file.name)};if(!images.some(image=>image.name===file.name))images.push(imageMap[title]);renderMatches();}};input.click();}
+    function dataBuffer(url){const binary=atob(url.split(',')[1]),out=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)out[i]=binary.charCodeAt(i);return out.buffer;}
+    function ext(url){return ({'image/jpeg':'jpeg','image/jpg':'jpeg','image/png':'png','image/gif':'gif','image/webp':'webp'})[url.split(';')[0].split(':')[1]]||'png';}
+    async function workbook(data){const wb=new ExcelJS.Workbook(),ws=wb.addWorksheet('Recipes'),keys=Object.keys(data[0]||{}),header=ws.addRow(keys);header.font={bold:true,color:{argb:'FFFFFFFF'}};header.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1E3A5F'}};keys.forEach((key,index)=>{const col=ws.getColumn(index+1);col.width=key.endsWith('_Image')?18:key.endsWith('_Title')?28:key.endsWith('_Ingredients')||key.endsWith('_Directions')?44:18;});data.forEach((row,index)=>{const xl=ws.addRow(keys.map(key=>String(row[key]||'').startsWith('data:')?'':row[key]||''));xl.alignment={wrapText:true,vertical:'top'};for(let col=0;col<keys.length;col++){const key=keys[col];if(!key.endsWith('_Image'))continue;const title=String(row[key.replace('_Image','_Title')]||'').trim(),img=imageMap[title]||match(title);if(!img)continue;const id=wb.addImage({buffer:dataBuffer(img.dataUrl),extension:ext(img.dataUrl)});ws.addImage(id,{tl:{nativeCol:col,nativeColOff:0,nativeRow:index+1,nativeRowOff:0},br:{nativeCol:col+1,nativeColOff:0,nativeRow:index+2,nativeRowOff:0},editAs:'oneCell'});ws.getCell(index+2,col+1).value='';xl.height=90;}});ws.views=[{state:'frozen',ySplit:1}];return new Uint8Array(await wb.xlsx.writeBuffer());}
+    $('mergeButton').onclick=async()=>{if(!entries.length)return;$('mergeButton').disabled=true;$('mergeButton').textContent='Merging...';merged=[];for(const entry of entries){const bytes=await workbook(entry.rows);merged.push({name:entry.base+'_with_images.xlsx',bytes});}renderOutputs();$('mergeButton').disabled=false;$('mergeButton').textContent='Merge images';};
+    function renderOutputs(){$('outputList').innerHTML=merged.map(item=>`<div class="output-pill"><span>XLSX</span><span>${item.name}</span><button class="tiny-button" data-download="${encodeURIComponent(item.name)}">Download</button></div>`).join('');$('downloadAll').disabled=!merged.length;$('downloadZip').disabled=!merged.length;$('outputList').querySelectorAll('[data-download]').forEach(button=>button.onclick=()=>{const item=merged.find(entry=>entry.name===decodeURIComponent(button.dataset.download));if(item)download(new Blob([item.bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),item.name);});}
+    $('downloadAll').onclick=()=>merged.forEach(item=>download(new Blob([item.bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),item.name));$('downloadZip').onclick=()=>download(new Blob([zip(merged)],{type:'application/zip'}),mode==='double'?'recipe_chapters.zip':'recipe_interiors.zip');$('resetTool').onclick=()=>location.reload();
+  </script>
 </body>
 </html>

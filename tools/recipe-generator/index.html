@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html data-theme="light">
 <head>
-  <title>Recipe Index Generator</title>
+  <title>Recipe Index Studio | OmniTools</title>
   <meta name="description" content="Recipe Index Generator by OmniTools">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -169,6 +169,17 @@
     button { font-family: inherit; transition: transform .2s, filter .2s; }
     button:hover { transform: translateY(-1px); filter: brightness(1.06); }
     @media (max-width: 620px) { .omni-topbar { margin-top: -20px; }.omni-back { font-size: 11px; }.topbar { align-items: flex-start; gap: 12px; flex-direction: column; } }
+    html[data-theme] { --bg: var(--tool-bg); --text: var(--tool-text); --card: var(--tool-surface); --border: var(--tool-border); --accent: var(--primary); }
+    .recipe-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr); gap: 20px; align-items: start; max-width: 1180px; margin: 0 auto; }
+    .input-card { min-width: 0; }
+    .output-card { position: sticky; top: 82px; min-width: 0; }
+    .output-card h3 { margin: 0 0 12px; }
+    .output-card pre { height: min(600px, 65vh); margin: 0; white-space: pre-wrap; }
+    .theme-control select { border-color: var(--border); background: var(--card); color: var(--text); }
+    .omni-topbar { padding-inline: 4px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .topbar h1 { max-width: 820px; line-height: 1.18; }
+    @media (max-width: 900px) { .recipe-layout { grid-template-columns: 1fr; }.output-card { position: static; }.output-card pre { height: 320px; } }
   </style>
 </head>
 
@@ -176,26 +187,27 @@
 
 <header class="omni-topbar">
   <a class="omni-brand" href="../../index.html"><span class="omni-mark">O</span> OmniTools</a>
+  <label class="theme-control"><span class="sr-only">Choose theme</span><select id="themeSelect" aria-label="Choose color theme"><option value="light">Light</option><option value="dark">Dark</option><option value="emerald">Emerald</option><option value="ocean">Ocean</option><option value="royal">Royal</option><option value="sunset">Sunset</option><option value="rose">Rose</option><option value="midnight">Midnight</option></select></label>
   <a class="omni-back" href="../../index.html">&lt;- Back to toolbox</a>
 </header>
 
 <div class="topbar">
   <div>
-    <h1>Recipe Index Generator</h1>
-    <h3>create by REDOUN</h3>
+    <h1>Recipe Index Studio</h1>
+    <h3>Paste your Google Sheet rows on the left, preview the finished index on the right, then export a clean DOC file.</h3>
   </div>
-
-  <button class="toggle" onclick="toggleTheme()">🌙 / ☀️</button>
 </div>
 
-<div class="card">
+<div class="recipe-layout">
+<section class="card input-card">
 
   <div class="table-container">
     <table id="grid"></table>
   </div>
 
   <div class="buttons">
-    <button onclick="generate()">Generate</button>
+    <button onclick="generate()">Generate index</button>
+    <button onclick="clearGrid()" class="toggle">Clear rows</button>
     <button onclick="downloadDoc()">Download DOC</button>
   </div>
 
@@ -205,11 +217,13 @@
 
   <div class="progress-text" id="progressText">0%</div>
 
+</section>
+
+<aside class="card output-card">
+  <h3>Generated index</h3>
+  <pre id="output">Your generated recipe index will appear here.</pre>
+</aside>
 </div>
-
-<h3>Output:</h3>
-
-<pre id="output"></pre>
 
 <script>
 
@@ -453,14 +467,37 @@ function downloadDoc() {
 
 }
 
-
-
-// THEME TOGGLE
-function toggleTheme() {
-  document.body.classList.toggle("dark");
+function clearGrid() {
+  document.querySelectorAll("td input").forEach(input => { input.value = ""; });
+  document.getElementById("output").innerText = "Your generated recipe index will appear here.";
+  document.getElementById("progressBar").style.width = "0%";
+  document.getElementById("progressText").innerText = "0%";
 }
 
+
+
 </script>
+<link rel="stylesheet" href="../../css/tool-theme.css">
+<script src="../../js/theme.js"></script>
+<style>
+  body { background:var(--tool-bg); color:var(--tool-text); }
+  .card { background:var(--tool-surface); border-color:var(--tool-border); box-shadow:0 18px 45px color-mix(in srgb,var(--primary) 8%,transparent); }
+  .table-container { background:var(--tool-surface-soft); border-color:var(--tool-border); }
+  th { background:color-mix(in srgb,var(--primary) 10%,var(--tool-surface)); color:var(--tool-text); }
+  td { background:var(--tool-surface); }
+  .topbar h1 { font-size:clamp(2rem,4vw,3.5rem); letter-spacing:-.07em; }
+  .topbar h3,.progress-text { color:var(--tool-muted); }
+  .recipe-layout { gap:24px; }
+  .input-card,.output-card { padding:20px; border-radius:22px; }
+  .input-card { display:flex; flex-direction:column; }
+  .input-card .buttons { order:2; display:flex; flex-wrap:wrap; gap:8px; }
+  .input-card .buttons button { margin:0; min-height:42px; }
+  .input-card .progress-wrap,.input-card .progress-text { order:3; }
+  .output-card { min-height:640px; }
+  .output-card pre { background:var(--tool-surface-soft); border-color:var(--tool-border); color:var(--tool-text); line-height:1.75; }
+  .toggle { color:var(--tool-text); background:var(--tool-surface); border-color:var(--tool-border); }
+  @media (max-width:900px) { .output-card { min-height:0; } }
+</style>
 
 </body>
 </html>

@@ -6,8 +6,8 @@ OmniTools is a responsive personal toolbox built with HTML, CSS, and JavaScript.
 
 ## Included tools
 
-- Recipe Index Generator: paste recipe data, sort it into four columns, and download a DOC file.
-- DOCX to XLSX: convert recipe documents, match images, embed them in workbooks, and download ZIP files.
+- Recipe Index Studio: paste spreadsheet data, preview a polished four-column index, and download a DOC file.
+- Canva Bulk Recipe Interior Converter: convert recipe documents or chapters, match images, embed them in separate workbooks, and download XLSX or ZIP files.
 - Flow Automator: a Chrome extension for prompt queues and Google Labs Flow automation.
 
 The Flow Automator download is available from the website at `assets/flow-automator-v3.zip`.
