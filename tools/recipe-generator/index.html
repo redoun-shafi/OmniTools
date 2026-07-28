@@ -207,9 +207,9 @@
   </div>
 
   <div class="buttons">
-    <button onclick="generate()">Generate index</button>
-    <button onclick="clearGrid()" class="toggle">Clear rows</button>
-    <button onclick="downloadDoc()">Download DOC</button>
+    <button onclick="generate()" title="Read the filled rows and create the four-column recipe index">Generate index</button>
+    <button onclick="clearGrid()" class="toggle" title="Remove all spreadsheet entries and reset the preview">Clear rows</button>
+    <button onclick="downloadDoc()" title="Download the generated preview as a DOC file">Download DOC</button>
   </div>
 
   <div class="progress-wrap">
@@ -309,6 +309,12 @@ table.addEventListener("paste", function(e) {
 function generate() {
 
   let data = [];
+
+  if (![...document.querySelectorAll("td input")].some(input => input.value.trim())) {
+    document.getElementById("progressText").innerText = "Add recipe data before generating.";
+    document.getElementById("output").innerText = "Nothing to generate yet. Paste recipe names and page numbers into the grid.";
+    return;
+  }
 
   const inputs = document.querySelectorAll("td input");
 
@@ -454,6 +460,11 @@ function downloadDoc() {
 
   const text = document.getElementById("output").innerText;
 
+  if (!text || text === "Your generated recipe index will appear here.") {
+    document.getElementById("progressText").innerText = "Generate the index before downloading.";
+    return;
+  }
+
   const blob = new Blob([text], {
     type: "application/msword"
   });
@@ -489,6 +500,8 @@ function clearGrid() {
   .topbar h1 { font-size:clamp(2rem,4vw,3.5rem); letter-spacing:-.07em; }
   .topbar h3,.progress-text { color:var(--tool-muted); }
   .recipe-layout { gap:24px; }
+  .omni-topbar { width:100%; margin:0 0 24px; padding-inline:max(20px,calc((100% - 1180px)/2)); }
+  .page-intro { width:min(1180px,calc(100% - 40px)); margin:0 auto 24px; }
   .input-card,.output-card { padding:20px; border-radius:22px; }
   .input-card { display:flex; flex-direction:column; }
   .input-card .buttons { order:2; display:flex; flex-wrap:wrap; gap:8px; }
@@ -498,6 +511,7 @@ function clearGrid() {
   .output-card pre { background:var(--tool-surface-soft); border-color:var(--tool-border); color:var(--tool-text); line-height:1.75; }
   .toggle { color:var(--tool-text); background:var(--tool-surface); border-color:var(--tool-border); }
   @media (max-width:900px) { .output-card { min-height:0; } }
+  @media (max-width:650px) { .omni-topbar { padding-inline:14px; }.page-intro { width:calc(100% - 28px); } }
 </style>
 
 </body>

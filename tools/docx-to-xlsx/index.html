@@ -8,7 +8,7 @@
   <link rel="icon" href="../../assets/omnitools-mark.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../css/tool-theme.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -19,6 +19,7 @@
     body { margin:0; min-height:100vh; background:var(--tool-bg); color:var(--tool-text); font-family:"DM Sans",sans-serif; }
     a { color:inherit; text-decoration:none; }
     button,input { font:inherit; }
+    button:disabled { cursor:not-allowed; opacity:.55; }
     .shell { width:100%; margin:auto; }
     .topbar { min-height:78px; display:flex; align-items:center; gap:20px; padding:0 max(20px,calc((100% - 1240px)/2)); border-bottom:1px solid var(--tool-border); }
     .brand { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:-.04em; }
@@ -132,7 +133,7 @@
     function textFile(file){return file.text();}
     function parseRecipes(text){const lines=text.split(/\r?\n/).map(line=>line.replace(/\s+/g,' ').trim()).filter(Boolean),recipes=[];let current=null,section='',direction=1;for(const line of lines){const low=line.toLowerCase();if(low.startsWith('recipe title:')){if(current)recipes.push(current);current={Title:line.slice(line.indexOf(':')+1).trim(),Prep:'',Total:'',Serves:'',Ingredients:'',Directions:'',Notes:''};section='';direction=1;continue;}if(!current)continue;if(low.startsWith('prep time')){current.Prep=line.split(':').slice(1).join(':').trim();continue;}if(low.startsWith('total time')){current.Total=line.split(':').slice(1).join(':').trim();continue;}if(low.startsWith('serves')){current.Serves=line.split(':').slice(1).join(':').trim();continue;}if(low.startsWith('ingredients')){section='ingredients';continue;}if(low.startsWith('directions')){section='directions';continue;}if(low.startsWith('notes')||low.startsWith('nutrition')){section='notes';continue;}if(section==='ingredients')current.Ingredients+='• '+line+'\n';if(section==='directions')current.Directions+=direction+++'. '+line+'\n';if(section==='notes')current.Notes+='• '+line+'\n';}if(current)recipes.push(current);return recipes;}
     function rows(recipes){const result=[];for(let i=0;i<recipes.length;i+=2){const a=recipes[i],b=recipes[i+1]||{};result.push({Top_Title:a.Title||'',Top_Prep:a.Prep||'',Top_Total:a.Total||'',Top_Serves:a.Serves||'',Top_Ingredients:a.Ingredients||'',Top_Directions:a.Directions||'',Top_Notes:a.Notes||'',Top_Image:'',Bottom_Title:b.Title||'',Bottom_Prep:b.Prep||'',Bottom_Total:b.Total||'',Bottom_Serves:b.Serves||'',Bottom_Ingredients:b.Ingredients||'',Bottom_Directions:b.Directions||'',Bottom_Notes:b.Notes||'',Bottom_Image:''});}return result;}
-    function chapterSpecs(){return $('chapterMarker').value.split(/\r?\n/).map(line=>line.replace(/^\s*\d+\s*(?:[.)]|[-:]|\t)\s*/,'').trim()).filter(Boolean).map(name=>({name,normal:norm(name)}));}
+    function chapterSpecs(){return $('chapterMarker').value.split(/\r?\n/).map(line=>line.replace(/^\s*\d+\s*(?:[.)]|[-:]|\t|\s)+/,'').trim()).filter(Boolean).map(name=>({name,normal:norm(name)}));}
     function chapterScore(line,spec){const words=spec.normal.split(' ').filter(Boolean),hay=new Set(norm(line).split(' '));return words.length?words.filter(word=>hay.has(word)).length/words.length:0;}
     function splitChapters(text){const specs=chapterSpecs(),lines=text.split(/\r?\n/),found=[];let cursor=0;for(const spec of specs){let best=-1,bestScore=0;for(let i=cursor;i<lines.length;i++){const score=chapterScore(lines[i],spec);if(score>bestScore){bestScore=score;best=i;}if(score===1)break;}if(best>=0&&bestScore>=.6){found.push({name:spec.name,start:best});cursor=best+1;}}return found.map((chapter,index)=>({name:chapter.name,recipes:parseRecipes(lines.slice(chapter.start+1,index+1<found.length?found[index+1].start:lines.length).join('\n'))})).filter(chapter=>chapter.recipes.length);}
     function showFiles(listId){$(listId).innerHTML=sourceFiles.map(file=>`<div class="file-pill"><span>DOCX</span><span>${file.name}</span><span class="file-status">ready</span></div>`).join('');}
