@@ -1,5 +1,5 @@
 (function () {
-  const themes = ['light', 'dark', 'emerald', 'ocean', 'royal', 'sunset', 'rose', 'midnight'];
+  const themes = ['light', 'dark', 'colorful'];
   const select = document.querySelector('#themeSelect');
   const saved = localStorage.getItem('omniToolsTheme');
   const theme = themes.includes(saved) ? saved : 'light';
