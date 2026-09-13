@@ -1,14 +1,83 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=../autoflow/">
-  <link rel="canonical" href="../autoflow/">
-  <title>Auto Flow — moved</title>
-  <script>location.replace("../autoflow/");</script>
-  <style>body{font-family:"DM Sans",system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;background:#f5f1e8;color:#243027}a{color:#496a3d;font-weight:700}</style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Install the OmniTools Auto Flow Chrome extension">
+<title>Auto Flow for Chrome | OmniTools</title>
+  <link rel="icon" href="../../assets/omnitools-mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/tool-page.css">
+  <link rel="stylesheet" href="../../css/tool-theme.css">
 </head>
 <body>
-  <p>This page has moved to <a href="../autoflow/">Auto Flow</a>. Redirecting…</p>
+  <div class="tool-shell">
+    <header class="tool-header">
+      <a class="tool-brand" href="../../index.html"><span class="tool-mark">O</span> OmniTools</a>
+      <label class="theme-control"><span class="sr-only">Choose theme</span><select id="themeSelect" aria-label="Choose color theme"><option value="light">Light</option><option value="dark">Dark</option><option value="colorful">Colorful</option></select></label>
+      <a class="back-link" href="../../index.html">&lt;- Back to toolbox</a>
+    </header>
+    <main>
+      <section class="tool-intro">
+        <div>
+        <div class="eyebrow">Chrome extension / Google Labs Flow</div>
+          <h1>Auto Flow for Chrome</h1>
+          <p>Queue prompts and automate bulk AI image generation in Google Labs Flow with a focused Chrome workflow.</p>
+        </div>
+        <div class="tool-badge">Chrome extension</div>
+      </section>
+
+      <section class="extension-hero">
+        <div class="eyebrow">Power up your workflow</div>
+        <h2>More prompts. Less repetition.</h2>
+        <p class="tool-intro-description">The extension runs beside Google Labs Flow, keeps your prompt queue organized, and handles the repetitive steps while you focus on the creative direction.</p>
+        <div class="extension-actions">
+          <a class="extension-button" href="https://labs.google/fx/tools/flow" target="_blank" rel="noreferrer">Open Google Flow</a>
+          <a class="extension-button" href="../../assets/AutoFlow.zip" download>Download extension</a>
+          <a class="extension-button secondary" href="../../index.html#tools">View other tools</a>
+        </div>
+        <div class="extension-note">Built for Google Chrome on Windows and Linux. The automation runs locally in Chrome and uses Chrome tabs, storage, downloads, and Google Labs Flow access.</div>
+      </section>
+
+      <section class="extension-grid">
+        <article class="extension-card">
+          <h2>What it can do</h2>
+          <p>Auto Flow keeps the existing extension workflow intact.</p>
+          <ul class="feature-list">
+            <li>Add one prompt or paste a complete list.</li>
+            <li>Pause, resume, remove, and restart queue items.</li>
+            <li>Choose delay, quality, image count, and auto-download settings.</li>
+            <li>Track progress and countdowns while a queue is running.</li>
+            <li>Open Flow and check project connection status.</li>
+          </ul>
+        </article>
+        <article class="extension-card">
+          <h2>Install locally</h2>
+          <p>Download the ZIP, extract it, and load the extracted folder in Chrome.</p>
+          <ol class="install-list">
+            <li>Download the <strong>Auto Flow ZIP</strong> from this page.</li>
+            <li>Extract the ZIP to a normal folder on your computer.</li>
+            <li>Open <strong>chrome://extensions</strong> in Google Chrome.</li>
+            <li>Enable Developer mode in the top-right corner.</li>
+            <li>Click <strong>Load unpacked</strong> and choose the extracted folder.</li>
+            <li>Open Google Flow, then launch the extension from Chrome.</li>
+          </ol>
+        </article>
+      </section>
+      <section class="extension-card install-guide">
+        <div class="eyebrow">Visual guide</div>
+        <h2>Install in three steps</h2>
+        <div class="guide-grid">
+          <figure><img src="../../assets/extension-step-1.svg" alt="Chrome extensions page with Developer mode enabled"><figcaption>Open Chrome extensions and enable Developer mode.</figcaption></figure>
+          <figure><img src="../../assets/extension-step-2.svg" alt="Load unpacked button and Auto Flow folder"><figcaption>Choose the extracted Auto Flow folder.</figcaption></figure>
+          <figure><img src="../../assets/extension-step-3.svg" alt="Auto Flow running beside Google Flow"><figcaption>Open Google Flow and start your queue.</figcaption></figure>
+        </div>
+      </section>
+      <p class="tool-note">Auto Flow version 3.1.0. Requires Google Chrome and access to Google Labs Flow. macOS is not supported by this guide.</p>
+    </main>
+  </div>
+  <script src="../../js/theme.js"></script>
 </body>
 </html>

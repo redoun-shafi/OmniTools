@@ -3,30 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="OmniTools — Calm, focused tools for creative and document workflows.">
-  <title>OmniTools | Calm Blue Workspace</title>
+  <meta name="description" content="OmniTools - Where everyday tools become superpowers.">
+  <title>OmniTools | Where everyday tools become superpowers</title>
   <link rel="icon" href="assets/omnitools-mark.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/tokens.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/auth.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
-  <div class="app-shell" id="appShell">
+  <div class="app-shell">
     <header class="site-header">
       <a class="brand" href="index.html" aria-label="OmniTools home">
         <span class="brand-mark" aria-hidden="true"><span>O</span></span>
-        <span class="brand-lockup"><span class="brand-name">Omni<span>Tools</span></span><small>Calm, focused tools for creative workflows.</small></span>
+        <span class="brand-lockup"><span class="brand-name">Omni<span>Tools</span></span><small>Where everyday tools become superpowers.</small></span>
       </a>
 
       <nav class="desktop-nav" aria-label="Main navigation">
         <a class="nav-link active" href="#top">Home</a>
         <a class="nav-link" href="#tools">Tools</a>
-        <a class="nav-link" href="https://t.me/redoun_shafi" target="_blank" rel="noreferrer">Contact me</a>
+        <a class="nav-link" href="#about">About me</a>
       </nav>
 
       <div class="header-actions">
@@ -35,7 +31,7 @@
           <select id="themeSelect" aria-label="Choose color theme">
             <option value="light">Light theme</option>
             <option value="dark">Dark theme</option>
-            <option value="colorful">Calm theme</option>
+            <option value="colorful">Colorful theme</option>
           </select>
         </label>
         <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="mobileMenu">
@@ -48,36 +44,25 @@
     <nav class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation">
       <a href="#top">Home</a>
       <a href="#tools">Tools</a>
-      <a href="https://t.me/redoun_shafi" target="_blank" rel="noreferrer">Contact me · @redoun_shafi</a>
+      <a href="#about">About me</a>
     </nav>
 
     <main id="top">
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <p class="eyebrow">Focused Workspace for Document & Data Work</p>
-          <h1 id="hero-title">Everyday tools,<br><span>refined & calm</span></h1>
-          <p>Carefully designed utilities for converting recipe interiors, indexing documents, and automating generation workflows. Built with clarity, precision, and tranquility.</p>
-          <a class="button button-primary" href="#tools">Explore Workspace</a>
+          <div class="eyebrow"><span class="status-dot"></span> A smarter way to get things done</div>
+          <h1 id="hero-title">Your everyday tools,<br><span>in one place.</span></h1>
+          <p>One focused workspace for the small jobs that keep your day moving. Simple tools, designed to feel like superpowers.</p>
+          <a class="button button-primary" href="#tools">Explore all tools <span aria-hidden="true">-&gt;</span></a>
         </div>
-        <div class="hero-panel" aria-hidden="true">
-          <div class="hero-panel-head">
-            <span class="hero-panel-title">Batch generator &bull; preview</span>
-            <span class="hero-panel-meta">Active session</span>
-          </div>
-          <div class="hero-panel-body">
-            <div class="hero-key-row">
-              <span class="hero-key">A3F9-K2P8-M7Q1-R4W6</span>
-              <span class="gate-badge gate-badge-unused">READY</span>
-            </div>
-            <div class="hero-key-row">
-              <span class="hero-key">B7L2-Q9W4-E1R8-T5Y3</span>
-              <span class="gate-badge gate-badge-used">PROCESSED</span>
-            </div>
-            <div class="hero-panel-foot">
-              <span>100 items processed</span>
-              <span>2026-09-11</span>
-            </div>
-          </div>
+        <div class="hero-orbit" aria-hidden="true">
+          <div class="orbit-ring ring-one"></div>
+          <div class="orbit-ring ring-two"></div>
+          <div class="orbit-core"><span>O</span></div>
+          <span class="orbit-chip chip-one">DOCX</span>
+          <span class="orbit-chip chip-two">AI</span>
+          <span class="orbit-chip chip-three">CSV</span>
+          <span class="orbit-chip chip-four">FLOW</span>
         </div>
       </section>
 
@@ -85,7 +70,7 @@
         <div class="section-heading">
           <div>
             <div class="section-kicker">Workspace</div>
-            <h2 id="tools-title">Available Tools</h2>
+            <h2 id="tools-title">Your tools</h2>
           </div>
           <span class="tool-count" id="toolCount">6 tools</span>
         </div>
@@ -103,35 +88,38 @@
             <button class="category-button" type="button" data-category="AI Tools">AI tools</button>
             <button class="category-button" type="button" data-category="Extensions">Extensions</button>
           </div>
-          <div class="sort-box">
-            <label for="toolSort" class="sr-only">Sort tools</label>
-            <select id="toolSort" class="sort-select">
-              <option value="recommended">Recommended</option>
-              <option value="recent">Recently added</option>
-              <option value="alphabetical">Alphabetical (A-Z)</option>
-            </select>
-          </div>
         </div>
 
         <div class="tool-grid" id="toolGrid"></div>
         <div class="empty-state" id="emptyState" hidden>
           <div class="empty-icon">?</div>
           <h3>No tools found</h3>
-          <p>Try another search query or choose a different category.</p>
-          <button class="button button-secondary reset-filters-btn" id="resetFiltersBtn" type="button">Reset filters</button>
+          <p>Try another search or choose a different category.</p>
         </div>
       </section>
 
+      <section class="about-panel" id="about" aria-labelledby="about-title">
+        <div class="about-avatar"><img src="https://avatars.githubusercontent.com/u/123361229?v=4" alt="Redoun Hossain Shafi"></div>
+        <div class="about-copy">
+          <div class="section-kicker">About the creator</div>
+          <h2 id="about-title">Built with curiosity and purpose.</h2>
+          <p>Hi, I am Md Redoun Hossain Shafi, a developer from Bogura, Bangladesh. I build practical tools that simplify repetitive work, explore useful AI workflows, and turn everyday ideas into focused digital products.</p>
+          <p>OmniTools is my growing personal productivity platform: a place to collect, improve, and share the tools I use in real projects.</p>
+          <div class="about-links">
+            <a href="https://github.com/redoun-shafi" target="_blank" rel="noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.61-3.37-1.18-3.37-1.18-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.36 1.09 2.94.83.09-.65.35-1.09.64-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 7.85c.85 0 1.7.11 2.49.33 1.9-1.29 2.74-1.02 2.74-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.86v2.76c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></svg>GitHub</a>
+            <a href="https://www.facebook.com/RedounShafi" target="_blank" rel="noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 8h3V4h-3c-2.76 0-5 2.24-5 5v3H6v4h3v4h4v-4h3l1-4h-4V9c0-.55.45-1 1-1z"/></svg>Facebook</a>
+            <a href="https://www.instagram.com/redoun_shafi" target="_blank" rel="noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>Instagram</a>
+          </div>
+        </div>
+      </section>
     </main>
 
-    <footer class="site-footer">
+    <footer class="site-footer" id="about">
       <div class="footer-brand"><span class="brand-mark small">O</span><span>OmniTools</span></div>
-      <p>Created with precision and care by Redoun.</p>
-      <div class="footer-links"><a href="https://t.me/redoun_shafi" target="_blank" rel="noreferrer">Contact &bull; @redoun_shafi</a><a href="https://github.com/redoun-shafi/OmniTools" target="_blank" rel="noreferrer">GitHub</a><span>Calm Blue Edition</span></div>
+      <p>Created with love by Redoun.</p>
+      <div class="footer-links"><a href="#about">About me</a><a href="https://github.com/redoun-shafi" target="_blank" rel="noreferrer">GitHub</a><span>Made for focus.</span></div>
     </footer>
   </div>
-  <script src="js/supabase-client.js"></script>
-  <script src="js/auth-ui.js"></script>
   <script src="js/theme.js"></script>
   <script src="js/app.js"></script>
 </body>

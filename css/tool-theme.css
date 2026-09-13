@@ -1,91 +1,19 @@
-/* OmniTools — Tool Theme System & Component Styling
-   Calm Blue Design System
-   Palette: #202940 (primary navy), #4B4038 (dark brown), #9A8678 (muted taupe), #CAAA98 (warm beige)
-   Font: "Josefin Sans", sans-serif universally applied
-*/
-
-@import url("tokens.css");
-
 :root {
-  --primary: var(--color-primary-navy);
-  --secondary: var(--color-warm-beige);
-  --accent: var(--color-warm-beige);
-  --muted: var(--color-muted-taupe);
-  --dark: var(--color-dark-brown);
-
-  --tool-bg: var(--bg);
-  --tool-surface: var(--surface);
-  --tool-surface-soft: var(--surface-soft);
-  --tool-border: var(--border);
-  --tool-text: var(--text);
-  --tool-muted: var(--text-muted);
+  --primary:#496a3d; --secondary:#9a6b3f; --accent:#d7a84f;
+  --tool-bg:#f5f1e8; --tool-surface:#fffdf8; --tool-surface-soft:#eee8d9;
+  --tool-border:#d9d0bd; --tool-text:#243027; --tool-muted:#6d756c;
+  --tool-danger:#b73b32; --tool-success:#3f7a4e;
+  --bg:var(--tool-bg); --surface:var(--tool-surface); --border:var(--tool-border);
+  --text:var(--tool-text); --muted:var(--tool-muted);
 }
+[data-theme="dark"] { --primary:#9fbd74; --secondary:#d39b5f; --accent:#e3bf68; --tool-bg:#172019; --tool-surface:#213025; --tool-surface-soft:#293a2b; --tool-border:#405542; --tool-text:#f5f1e8; --tool-muted:#b9c3b2; --tool-danger:#f17a67; --tool-success:#91cb8d; }
+[data-theme="colorful"] { --primary:#5c4fb1; --secondary:#d26b48; --accent:#e2ad45; --tool-bg:#f5f0ff; --tool-surface:#fffaff; --tool-surface-soft:#eee8ff; --tool-border:#d9d0ef; --tool-text:#26203d; --tool-muted:#716a84; --tool-danger:#c63f50; --tool-success:#3d8b68; }
 
-[data-theme="dark"] {
-  --tool-bg: #131824;
-  --tool-surface: #202940;
-  --tool-surface-soft: #28334E;
-  --tool-border: rgba(202, 170, 152, 0.18);
-  --tool-text: #FAF7F5;
-  --tool-muted: var(--color-warm-beige);
-}
-
-[data-theme="calm"], [data-theme="colorful"] {
-  --tool-bg: #F4ECE6;
-  --tool-surface: #FFFFFF;
-  --tool-surface-soft: #EFE4DC;
-  --tool-border: rgba(154, 134, 120, 0.28);
-  --tool-text: var(--color-primary-navy);
-  --tool-muted: var(--color-dark-brown);
-}
-
-/* Tool Navigation & Theme Control */
-.theme-control select {
-  min-height: 38px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  color: var(--text);
-  padding: 6px 16px;
-  font-size: 0.78rem;
-  cursor: pointer;
-  outline: none;
-  font-family: var(--font-primary);
-  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
-}
-
-.theme-control select:hover {
-  border-color: var(--primary);
-}
-
-.theme-control select:focus-visible {
-  box-shadow: var(--focus-ring);
-  outline: none;
-}
-
-/* Tool Container Card Overrides */
-html[data-theme] .extension-hero,
-html[data-theme] .extension-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text);
-}
-
-html[data-theme] .extension-note {
-  background: var(--surface-soft);
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-
-html[data-theme] .btn-convert,
-html[data-theme] .btn-merge {
-  background: var(--primary);
-  color: var(--color-white);
-  font-family: var(--font-primary);
-}
-
-html[data-theme] .btn-zip {
-  background: var(--color-warm-beige);
-  color: var(--color-primary-navy);
-  font-family: var(--font-primary);
-}
+.theme-control select { min-height: 40px; border: 1px solid var(--tool-border); border-radius: 10px; background: var(--tool-surface); color: var(--tool-text); padding: 8px 28px 8px 10px; font: 600 12px "DM Sans", sans-serif; cursor: pointer; }
+html[data-theme] .extension-hero { background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 13%, var(--tool-surface)), color-mix(in srgb, var(--secondary) 10%, var(--tool-surface))); }
+html[data-theme] .extension-card { background: var(--tool-surface); border-color: var(--tool-border); }
+html[data-theme] .extension-note { background: color-mix(in srgb, #f59e0b 12%, var(--tool-surface)); color: var(--tool-text); }
+html[data-theme] .btn-convert, html[data-theme] .btn-merge { background: var(--primary); }
+html[data-theme] .btn-zip { background: var(--secondary); }
+html[data-theme] { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }

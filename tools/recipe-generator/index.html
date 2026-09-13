@@ -1,43 +1,68 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html data-theme="light">
 <head>
-  <meta charset="UTF-8">
   <title>Recipe Index Studio | OmniTools</title>
   <link rel="icon" href="../../assets/omnitools-mark.svg" type="image/svg+xml">
-  <meta name="description" content="Recipe Index Studio by OmniTools — Paste spreadsheet rows, preview an alphabetically organized index, and export as DOC.">
+  <meta name="description" content="Recipe Index Generator by OmniTools">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../css/tokens.css">
-  <link rel="stylesheet" href="../../css/tool-page.css">
-  <link rel="stylesheet" href="../../css/tool-theme.css">
-  <link rel="stylesheet" href="../../css/auth.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
 
   <style>
-    .recipe-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
-      gap: 24px;
-      align-items: start;
-      margin-top: 12px;
+    :root {
+      --bg: #f5f7fb;
+      --text: #222;
+      --card: #ffffff;
+      --border: #ddd;
+      --accent: #4a6cf7;
+    }
+
+    body.dark {
+      --bg: #1e1f26;
+      --text: #eee;
+      --card: #2a2c36;
+      --border: #444;
+      --accent: #7aa2ff;
+    }
+
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+      transition: 0.3s;
+    }
+
+    h1 {
+      margin-bottom: 0;
+    }
+
+    h3 {
+      margin-top: 5px;
+      font-weight: normal;
+      color: gray;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .card {
-      background: var(--tool-surface, var(--surface));
-      border: 1px solid var(--tool-border, var(--border));
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      box-shadow: var(--shadow-subtle);
+      background: var(--card);
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-top: 15px;
     }
 
     .table-container {
-      max-height: 520px;
+      max-height: 600px;
       overflow: auto;
-      border: 1px solid var(--tool-border, var(--border));
-      border-radius: var(--radius-md);
-      background: var(--tool-surface-soft, var(--surface-soft));
+      border: 1px solid var(--border);
+      border-radius: 8px;
     }
 
     table {
@@ -46,28 +71,21 @@
     }
 
     th, td {
-      border: 1px solid var(--tool-border, var(--border));
+      border: 1px solid var(--border);
       width: 180px;
-      height: 34px;
-      padding: 6px 10px;
+      height: 30px;
+      padding: 4px;
     }
 
     th {
-      background: var(--surface-alt, rgba(202, 170, 152, 0.25));
-      color: var(--tool-text, var(--text));
-      font-weight: 500;
+      background: #f0f0f0;
       position: sticky;
       top: 0;
       z-index: 2;
     }
 
-    [data-theme="dark"] th {
-      background: var(--surface-soft);
-      color: var(--text);
-    }
-
-    td {
-      background: var(--tool-surface, var(--surface));
+    body.dark th {
+      background: #333;
     }
 
     td input {
@@ -75,339 +93,426 @@
       border: none;
       outline: none;
       background: transparent;
-      color: var(--tool-text, var(--text));
-      font-family: var(--font-primary);
-      font-size: inherit;
+      color: var(--text);
     }
 
     .buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 20px;
+      margin-top: 10px;
     }
 
-    .btn-action-primary {
-      min-height: 42px;
-      padding: 8px 20px;
+    button {
+      padding: 8px 16px;
+      margin-right: 5px;
       border: none;
-      border-radius: var(--radius-control);
+      border-radius: 6px;
       cursor: pointer;
-      background: var(--color-primary-navy);
-      color: var(--color-white);
-      font-size: var(--text-sm);
-      font-family: var(--font-primary);
-      transition: all var(--duration-fast) ease;
-      box-shadow: var(--shadow-subtle);
+      background: var(--accent);
+      color: white;
     }
 
-    .btn-action-primary:hover {
-      background: var(--color-dark-brown);
-      transform: translateY(-1px);
-    }
-
-    .btn-action-secondary {
-      min-height: 42px;
-      padding: 8px 18px;
-      border: 1px solid var(--tool-border, var(--border));
-      border-radius: var(--radius-control);
-      cursor: pointer;
-      background: var(--color-warm-beige);
-      color: var(--color-primary-navy);
-      font-size: var(--text-sm);
-      font-family: var(--font-primary);
-      transition: all var(--duration-fast) ease;
-    }
-
-    .btn-action-secondary:hover {
-      background: #bfa08f;
-      transform: translateY(-1px);
-    }
-
-    .btn-action-dark {
-      min-height: 42px;
-      padding: 8px 20px;
-      border: none;
-      border-radius: var(--radius-control);
-      cursor: pointer;
-      background: var(--color-dark-brown);
-      color: var(--color-white);
-      font-size: var(--text-sm);
-      font-family: var(--font-primary);
-      transition: all var(--duration-fast) ease;
-    }
-
-    .btn-action-dark:hover {
-      background: var(--color-primary-navy);
-      transform: translateY(-1px);
+    .toggle {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
     }
 
     .progress-wrap {
-      margin-top: 18px;
-      background: var(--tool-border, var(--border));
-      height: 6px;
-      border-radius: 4px;
+      margin-top: 10px;
+      background: var(--border);
+      height: 8px;
+      border-radius: 5px;
       overflow: hidden;
+      position: relative;
     }
 
     .progress-bar {
       height: 100%;
-      width: 100%;
-      background: var(--color-primary-navy);
-      transform: scaleX(0);
-      transform-origin: left center;
-      transition: transform 0.2s ease;
+      width: 0%;
+      background: var(--accent);
+      transition: 0.2s;
     }
 
     .progress-text {
-      font-size: var(--text-xs);
-      margin-top: 6px;
-      color: var(--tool-muted, var(--text-muted));
-    }
-
-    .output-card {
-      position: sticky;
-      top: 96px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .output-card h2 {
-      margin: 0 0 14px;
-      font-size: 1.5rem;
-      font-weight: 400;
-      color: var(--tool-text, var(--text));
+      font-size: 12px;
+      margin-top: 4px;
     }
 
     pre {
-      background: var(--tool-surface-soft, var(--surface-soft));
-      color: var(--tool-text, var(--text));
-      padding: 16px;
-      height: min(520px, 60vh);
+      background: var(--card);
+      padding: 10px;
+      height: 250px;
       overflow: auto;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--tool-border, var(--border));
-      font-family: var(--font-primary);
-      font-size: var(--text-sm);
-      line-height: 1.7;
-      margin: 0;
-      white-space: pre-wrap;
+      border-radius: 8px;
+      border: 1px solid var(--border);
     }
 
-    @media (max-width: 920px) {
-      .recipe-layout {
-        grid-template-columns: 1fr;
-      }
-      .output-card {
-        position: static;
-      }
-      pre {
-        height: 300px;
-      }
+    .omni-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      width: min(1180px, 100%);
+      margin: -20px auto 24px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(16px);
     }
+    .omni-brand { display: inline-flex; align-items: center; gap: 9px; color: var(--text); text-decoration: none; font-family: "Manrope", sans-serif; font-weight: 800; letter-spacing: -.03em; }
+    .omni-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, #2563eb, #7c3aed); color: #fff; }
+    .omni-back { color: var(--accent); font-family: "DM Sans", sans-serif; font-size: 12px; font-weight: 700; text-decoration: none; }
+    .omni-back:hover { text-decoration: underline; }
+    body { font-family: "DM Sans", "Segoe UI", sans-serif; min-height: 100vh; }
+    .card { border: 1px solid var(--border); }
+    button { font-family: inherit; transition: transform .2s, filter .2s; }
+    button:hover { transform: translateY(-1px); filter: brightness(1.06); }
+    @media (max-width: 620px) { .omni-topbar { margin-top: -20px; }.omni-back { font-size: 11px; }.topbar { align-items: flex-start; gap: 12px; flex-direction: column; } }
+    html[data-theme] { --bg: var(--tool-bg); --text: var(--tool-text); --card: var(--tool-surface); --border: var(--tool-border); --accent: var(--primary); }
+    .recipe-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr); gap: 20px; align-items: start; max-width: 1180px; margin: 0 auto; }
+    .input-card { min-width: 0; }
+    .output-card { position: sticky; top: 82px; min-width: 0; }
+    .output-card h3 { margin: 0 0 12px; }
+    .output-card pre { height: min(600px, 65vh); margin: 0; white-space: pre-wrap; }
+    .theme-control select { border-color: var(--border); background: var(--card); color: var(--text); }
+    .omni-topbar { padding-inline: 4px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .topbar h1 { max-width: 820px; line-height: 1.18; }
+    @media (max-width: 900px) { .recipe-layout { grid-template-columns: 1fr; }.output-card { position: static; }.output-card pre { height: 320px; } }
   </style>
 </head>
 
 <body>
-  <div class="tool-shell">
-    <header class="tool-header">
-      <div class="tool-header-left">
-        <a class="back-link" href="../../index.html" aria-label="Back to workspace">&larr; Back to toolbox</a>
-        <a class="tool-brand" href="../../index.html"><span class="tool-mark" aria-hidden="true">O</span> OmniTools</a>
-      </div>
-      <div class="tool-header-right">
-        <label class="theme-control">
-          <span class="sr-only">Choose theme</span>
-          <select id="themeSelect" aria-label="Choose color theme">
-            <option value="light">Light theme</option>
-            <option value="dark">Dark theme</option>
-            <option value="colorful">Calm theme</option>
-          </select>
-        </label>
-      </div>
-    </header>
 
-    <main>
-      <section class="tool-intro">
-        <div>
-          <div class="eyebrow">Document Indexing Utility</div>
-          <h1>Recipe Index Studio</h1>
-          <p>Paste recipe and page data into the spreadsheet columns on the left, generate an alphabetically organized index, and export as a clean DOC document.</p>
-        </div>
-        <div class="tool-badge">Converter</div>
-      </section>
+<header class="omni-topbar">
+  <a class="omni-brand" href="../../index.html"><span class="omni-mark">O</span> OmniTools</a>
+  <label class="theme-control"><span class="sr-only">Choose theme</span><select id="themeSelect" aria-label="Choose color theme"><option value="light">Light</option><option value="dark">Dark</option><option value="colorful">Colorful</option></select></label>
+  <a class="omni-back" href="../../index.html">&lt;- Back to toolbox</a>
+</header>
 
-      <div class="recipe-layout">
-        <section class="card input-card">
-          <div class="table-container">
-            <table id="grid"></table>
-          </div>
+<div class="topbar">
+  <div>
+    <h1>Recipe Index Studio</h1>
+    <h3>Paste your Google Sheet rows on the left, preview the finished index on the right, then export a clean DOC file.</h3>
+  </div>
+</div>
 
-          <div class="buttons">
-            <button class="btn-action-primary" onclick="generate()" title="Generate index from spreadsheet rows">Generate index</button>
-            <button class="btn-action-secondary" onclick="clearGrid()" title="Clear spreadsheet rows">Clear rows</button>
-            <button class="btn-action-dark" onclick="downloadDoc()" title="Export generated index as a DOC file">Download DOC</button>
-          </div>
+<div class="recipe-layout">
+<section class="card input-card">
 
-          <div class="progress-wrap">
-            <div id="progressBar" class="progress-bar"></div>
-          </div>
-
-          <div class="progress-text" id="progressText">0%</div>
-        </section>
-
-        <aside class="card output-card">
-          <h2>Generated Index</h2>
-          <pre id="output">Your generated recipe index will appear here.</pre>
-        </aside>
-      </div>
-
-      <p class="tool-note">All processing happens locally in your browser. No spreadsheet or document data is transmitted to external servers.</p>
-    </main>
+  <div class="table-container">
+    <table id="grid"></table>
   </div>
 
-  <script>
-    const rows = 200;
-    const cols = 3;
-    const table = document.getElementById("grid");
+  <div class="buttons">
+    <button onclick="generate()" title="Read the filled rows and create the four-column recipe index">Generate index</button>
+    <button onclick="clearGrid()" class="toggle" title="Remove all spreadsheet entries and reset the preview">Clear rows</button>
+    <button onclick="downloadDoc()" title="Download the generated preview as a DOC file">Download DOC</button>
+  </div>
 
-    // Header
-    let header = "<tr><th></th>";
-    for (let c = 0; c < cols; c++) {
-      header += `<th>${String.fromCharCode(65 + c)}</th>`;
-    }
-    header += "</tr>";
-    table.innerHTML += header;
+  <div class="progress-wrap">
+    <div id="progressBar" class="progress-bar"></div>
+  </div>
 
-    // Rows
-    for (let r = 0; r < rows; r++) {
-      let rowHTML = `<tr><th>${r + 1}</th>`;
-      for (let c = 0; c < cols; c++) {
-        rowHTML += `
-          <td>
-            <input data-row="${r}" data-col="${c}">
-          </td>
-        `;
-      }
-      rowHTML += "</tr>";
-      table.innerHTML += rowHTML;
-    }
+  <div class="progress-text" id="progressText">0%</div>
 
-    // Paste handling
-    table.addEventListener("paste", function(e) {
-      const startCell = e.target;
-      if (startCell.tagName !== "INPUT") return;
-      e.preventDefault();
-      const pasteData = e.clipboardData.getData("text");
-      const rowsData = pasteData.split("\n");
-      const startRow = parseInt(startCell.dataset.row);
-      const startCol = parseInt(startCell.dataset.col);
+</section>
 
-      rowsData.forEach((row, i) => {
-        const cells = row.split(/\t|,/);
-        cells.forEach((cell, j) => {
-          const target = document.querySelector(
-            `input[data-row="${startRow + i}"][data-col="${startCol + j}"]`
-          );
-          if (target) target.value = cell.trim();
-        });
-      });
+<aside class="card output-card">
+  <h3>Generated index</h3>
+  <pre id="output">Your generated recipe index will appear here.</pre>
+</aside>
+</div>
+
+<script>
+
+const rows = 200;
+const cols = 3;
+
+const table = document.getElementById("grid");
+
+
+// HEADER
+let header = "<tr><th></th>";
+
+for (let c = 0; c < cols; c++) {
+  header += `<th>${String.fromCharCode(65 + c)}</th>`;
+}
+
+header += "</tr>";
+
+table.innerHTML += header;
+
+
+// ROWS
+for (let r = 0; r < rows; r++) {
+
+  let rowHTML = `<tr><th>${r + 1}</th>`;
+
+  for (let c = 0; c < cols; c++) {
+
+    rowHTML += `
+      <td>
+        <input data-row="${r}" data-col="${c}">
+      </td>
+    `;
+  }
+
+  rowHTML += "</tr>";
+
+  table.innerHTML += rowHTML;
+}
+
+
+
+// PASTE SYSTEM
+table.addEventListener("paste", function(e) {
+
+  const startCell = e.target;
+
+  if (startCell.tagName !== "INPUT") return;
+
+  e.preventDefault();
+
+  const pasteData = e.clipboardData.getData("text");
+
+  const rowsData = pasteData.split("\n");
+
+  const startRow = parseInt(startCell.dataset.row);
+
+  const startCol = parseInt(startCell.dataset.col);
+
+  rowsData.forEach((row, i) => {
+
+    const cells = row.split(/\t|,/);
+
+    cells.forEach((cell, j) => {
+
+      const target = document.querySelector(
+        `input[data-row="${startRow + i}"][data-col="${startCol + j}"]`
+      );
+
+      if (target) target.value = cell.trim();
+
     });
 
-    // Generate index
-    function generate() {
-      let data = [];
-      if (![...document.querySelectorAll("td input")].some(input => input.value.trim())) {
-        document.getElementById("progressText").innerText = "Add recipe data before generating.";
-        document.getElementById("output").innerText = "Nothing to generate yet. Paste recipe names and page numbers into the grid.";
-        return;
+  });
+
+});
+
+
+
+
+// GENERATE
+function generate() {
+
+  let data = [];
+
+  if (![...document.querySelectorAll("td input")].some(input => input.value.trim())) {
+    document.getElementById("progressText").innerText = "Add recipe data before generating.";
+    document.getElementById("output").innerText = "Nothing to generate yet. Paste recipe names and page numbers into the grid.";
+    return;
+  }
+
+  const inputs = document.querySelectorAll("td input");
+
+  const bar = document.getElementById("progressBar");
+
+  const text = document.getElementById("progressText");
+
+  let count = 0;
+
+  let missingRows = [];
+
+
+  inputs.forEach((input, i) => {
+
+    const row = input.dataset.row;
+
+    const col = input.dataset.col;
+
+
+    if (col == 0) {
+
+      const name = input.value.trim();
+
+      const page = document.querySelector(
+        `input[data-row="${row}"][data-col="1"]`
+      ).value.trim();
+
+
+      // WARNING CHECK
+      if (name && !page) {
+        missingRows.push(Number(row) + 1);
       }
 
-      const inputs = document.querySelectorAll("td input");
-      const bar = document.getElementById("progressBar");
-      const text = document.getElementById("progressText");
-      let count = 0;
-      let missingRows = [];
 
-      inputs.forEach((input, i) => {
-        const row = input.dataset.row;
-        const col = input.dataset.col;
-
-        if (col == 0) {
-          const name = input.value.trim();
-          const page = document.querySelector(
-            `input[data-row="${row}"][data-col="1"]`
-          );
-          const pageVal = page ? page.value.trim() : "";
-
-          if (name && !pageVal) {
-            missingRows.push(Number(row) + 1);
-          }
-
-          if (name && pageVal) {
-            data.push({ name, page: pageVal });
-          }
-        }
-
-        setTimeout(() => {
-          count++;
-          let percent = Math.floor((count / inputs.length) * 100);
-          bar.style.transform = "scaleX(" + percent / 100 + ")";
-          text.innerText = percent + "%";
-        }, i * 2);
-      });
-
-      setTimeout(() => {
-        if (missingRows.length > 0) {
-          alert("Warning!\n\nMissing page number in rows:\n" + missingRows.join(", "));
-        }
-
-        data.sort((a, b) => a.name.localeCompare(b.name));
-        let currentLetter = "";
-        let output = [];
-
-        data.forEach(item => {
-          const letter = item.name.charAt(0).toUpperCase();
-          if (letter !== currentLetter) {
-            currentLetter = letter;
-            output.push("\n" + letter);
-          }
-          const dots = "..........";
-          output.push(item.name + " " + dots + item.page);
-        });
-
-        let finalOutput = output.join("\n");
-        document.getElementById("output").innerText = finalOutput;
-        if (window.OmniSupabase && typeof window.OmniSupabase.logToolActivity === "function") {
-          window.OmniSupabase.logToolActivity("Recipe Index Studio", "generate_index", { recipeCount: data.length });
-        }
-        alert("Recipe Index Generated Successfully!");
-      }, inputs.length * 2);
-    }
-
-    // Download DOC
-    function downloadDoc() {
-      const text = document.getElementById("output").innerText;
-      if (!text || text === "Your generated recipe index will appear here.") {
-        document.getElementById("progressText").innerText = "Generate the index before downloading.";
-        return;
+      if (name && page) {
+        data.push({ name, page });
       }
-      const blob = new Blob([text], { type: "application/msword" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "Recipe_Index.doc";
-      a.click();
+
     }
 
-    function clearGrid() {
-      document.querySelectorAll("td input").forEach(input => { input.value = ""; });
-      document.getElementById("output").innerText = "Your generated recipe index will appear here.";
-      document.getElementById("progressBar").style.transform = "scaleX(0)";
-      document.getElementById("progressText").innerText = "0%";
+
+    setTimeout(() => {
+
+      count++;
+
+      let percent = Math.floor((count / inputs.length) * 100);
+
+      bar.style.width = percent + "%";
+
+      text.innerText = percent + "%";
+
+    }, i * 2);
+
+  });
+
+
+
+  setTimeout(() => {
+
+    // WARNING
+    if (missingRows.length > 0) {
+
+      alert(
+        "Warning!\n\nMissing page number in rows:\n" +
+        missingRows.join(", ")
+      );
+
     }
-  </script>
-  <script src="../../js/supabase-client.js"></script>
-  <script src="../../js/auth-ui.js"></script>
-  <script src="../../js/theme.js"></script>
+
+
+    // SORT
+    data.sort((a, b) => a.name.localeCompare(b.name));
+
+    let currentLetter = "";
+
+    let output = [];
+
+
+    data.forEach(item => {
+
+      const letter = item.name.charAt(0).toUpperCase();
+
+      if (letter !== currentLetter) {
+
+        currentLetter = letter;
+
+        output.push("\n" + letter);
+
+      }
+
+      const dots = "..........";
+
+      output.push(item.name + " " + dots + item.page);
+
+    });
+
+
+
+
+    // COLUMN DIVIDE
+    const total = output.length;
+
+    const chunkSize = Math.ceil(total / 4);
+
+    let finalOutput = "";
+
+
+    for (let i = 0; i < 4; i++) {
+
+      const start = i * chunkSize;
+
+      const end = start + chunkSize;
+
+
+      finalOutput += "\n\n";
+      finalOutput += "==============================\n";
+      finalOutput += "COLUMN " + (i + 1) + "\n";
+      finalOutput += "==============================\n\n";
+
+
+      finalOutput += output
+        .slice(start, end)
+        .join("\n");
+
+    }
+
+
+    document.getElementById("output").innerText = finalOutput;
+
+
+    // COMPLETE MESSAGE
+    alert("Recipe Index Generated Successfully!");
+
+  }, inputs.length * 2);
+
+}
+
+
+
+
+// DOWNLOAD DOC
+function downloadDoc() {
+
+  const text = document.getElementById("output").innerText;
+
+  if (!text || text === "Your generated recipe index will appear here.") {
+    document.getElementById("progressText").innerText = "Generate the index before downloading.";
+    return;
+  }
+
+  const blob = new Blob([text], {
+    type: "application/msword"
+  });
+
+  const a = document.createElement("a");
+
+  a.href = URL.createObjectURL(blob);
+
+  a.download = "Recipe_Index.doc";
+
+  a.click();
+
+}
+
+function clearGrid() {
+  document.querySelectorAll("td input").forEach(input => { input.value = ""; });
+  document.getElementById("output").innerText = "Your generated recipe index will appear here.";
+  document.getElementById("progressBar").style.width = "0%";
+  document.getElementById("progressText").innerText = "0%";
+}
+
+
+
+</script>
+<link rel="stylesheet" href="../../css/tool-theme.css">
+<script src="../../js/theme.js"></script>
+<style>
+  body { background:var(--tool-bg); color:var(--tool-text); }
+  .card { background:var(--tool-surface); border-color:var(--tool-border); box-shadow:0 18px 45px color-mix(in srgb,var(--primary) 8%,transparent); }
+  .table-container { background:var(--tool-surface-soft); border-color:var(--tool-border); }
+  th { background:color-mix(in srgb,var(--primary) 10%,var(--tool-surface)); color:var(--tool-text); }
+  td { background:var(--tool-surface); }
+  .topbar h1 { font-size:clamp(2rem,4vw,3.5rem); letter-spacing:-.07em; }
+  .topbar h3,.progress-text { color:var(--tool-muted); }
+  .recipe-layout { gap:24px; }
+  .omni-topbar { width:100%; margin:0 0 24px; padding-inline:max(20px,calc((100% - 1180px)/2)); }
+  .page-intro { width:min(1180px,calc(100% - 40px)); margin:0 auto 24px; }
+  .input-card,.output-card { padding:20px; border-radius:22px; }
+  .input-card { display:flex; flex-direction:column; }
+  .input-card .buttons { order:2; display:flex; flex-wrap:wrap; gap:8px; }
+  .input-card .buttons button { margin:0; min-height:42px; }
+  .input-card .progress-wrap,.input-card .progress-text { order:3; }
+  .output-card { min-height:640px; }
+  .output-card pre { background:var(--tool-surface-soft); border-color:var(--tool-border); color:var(--tool-text); line-height:1.75; }
+  .toggle { color:var(--tool-text); background:var(--tool-surface); border-color:var(--tool-border); }
+  @media (max-width:900px) { .output-card { min-height:0; } }
+  @media (max-width:650px) { .omni-topbar { padding-inline:14px; }.page-intro { width:calc(100% - 28px); } }
+</style>
+
 </body>
 </html>
