@@ -116,6 +116,29 @@
       color: var(--text);
     }
 
+    .leader-picker {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-right: 5px;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--card);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .leader-picker select {
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+    }
+
     .progress-wrap {
       margin-top: 10px;
       background: var(--border);
@@ -207,6 +230,12 @@
   </div>
 
   <div class="buttons">
+    <label class="leader-picker" title="Filler between recipe name and page number">Leader
+      <select id="leaderStyle" aria-label="Leader style for generated index">
+        <option value="dot">Dot (..........)</option>
+        <option value="hyphen">Hyphen (----------)</option>
+      </select>
+    </label>
     <button onclick="generate()" title="Read the filled rows and create the four-column recipe index">Generate index</button>
     <button onclick="clearGrid()" class="toggle" title="Remove all spreadsheet entries and reset the preview">Clear rows</button>
     <button onclick="downloadDoc()" title="Download the generated preview as a DOC file">Download DOC</button>
@@ -392,6 +421,10 @@ function generate() {
 
     let output = [];
 
+    const leaderStyle = document.getElementById("leaderStyle").value;
+
+    const leader = leaderStyle === "hyphen" ? "----------" : "..........";
+
 
     data.forEach(item => {
 
@@ -405,9 +438,7 @@ function generate() {
 
       }
 
-      const dots = "..........";
-
-      output.push(item.name + " " + dots + item.page);
+      output.push(item.name + " " + leader + item.page);
 
     });
 
@@ -430,10 +461,6 @@ function generate() {
 
 
       finalOutput += "\n\n";
-      finalOutput += "==============================\n";
-      finalOutput += "COLUMN " + (i + 1) + "\n";
-      finalOutput += "==============================\n\n";
-
 
       finalOutput += output
         .slice(start, end)
