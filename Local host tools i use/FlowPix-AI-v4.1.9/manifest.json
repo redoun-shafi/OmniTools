@@ -1,0 +1,66 @@
+{
+  "manifest_version": 3,
+  "name": "FlowPix AI",
+  "description": "Cute, fast bulk image generation automation for Google Flow with a 5-second prompt cadence.",
+  "version": "4.1.9",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "sidePanel",
+    "tabs",
+    "scripting",
+    "debugger"
+  ],
+  "host_permissions": [
+    "https://labs.google/*",
+    "https://flow.google/*",
+    "https://flow.google.com/*",
+    "https://*.flow.google.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://labs.google/*",
+        "https://flow.google/*",
+        "https://flow.google.com/*",
+        "https://*.flow.google.com/*"
+      ],
+      "js": [
+        "flowContentScript.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "alwaysActive.js"
+      ],
+      "matches": [
+        "https://labs.google/*",
+        "https://flow.google/*",
+        "https://flow.google.com/*",
+        "https://*.flow.google.com/*"
+      ]
+    }
+  ],
+  "action": {
+    "default_title": "FlowPix AI",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  },
+  "side_panel": {
+    "default_path": "src/index.html"
+  }
+}

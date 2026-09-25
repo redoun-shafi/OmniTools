@@ -8,13 +8,13 @@ OmniTools is a responsive personal toolbox built with HTML, CSS, and JavaScript.
 
 - Recipe Index Studio: paste spreadsheet data, preview a polished four-column index, and download a DOC file.
 - Canva Bulk Recipe Interior Converter: convert recipe documents or chapters, match images, embed them in separate workbooks, and download XLSX or ZIP files.
-- Flow Automator: a Chrome extension for prompt queues and Google Labs Flow automation.
+- FlowPix AI: a Chrome extension for prompt queues and Google Labs Flow automation with a steady 5-second cadence.
 
-The Flow Automator download is available from the website at `assets/flow-automator-v3.zip`.
+The FlowPix AI download is available from the website at `assets/FlowPix.zip`.
 
 ## Run locally
 
-Open `index.html` in a browser, or serve the folder with any static file server. The browser-based tools run on the website and process files privately in the browser. The Flow Automator remains a Chrome extension and is not executed by the website.
+Open `index.html` in a browser, or serve the folder with any static file server. The browser-based tools run on the website and process files privately in the browser. The FlowPix AI extension remains a Chrome extension and is not executed by the website.
 
 ## GitHub Pages
 
