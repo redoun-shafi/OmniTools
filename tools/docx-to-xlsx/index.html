@@ -3,34 +3,47 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Recipe doc → Excel</title>
+<title>Recipe Doc to Excel | OmniTools</title>
+<link rel="icon" href="../../assets/omnitools-mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
 :root{--bg:#edf0ec;--card:#fff;--ink:#1b2a21;--mut:#6b7a70;--line:#d9dfd9;--g:#1d6f42;--gt:#e3f1e8;--r:#c43b3b;--rt:#fdeceb;--a:#b7791f;--at:#fff5df}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,sans-serif;font-size:14px;line-height:1.45}
-header{position:sticky;top:0;z-index:5;background:var(--ink);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-header h1{font-size:15px;font-weight:600}
-nav{display:flex;gap:6px;margin-left:auto}
-nav a{color:#b9c7be;text-decoration:none;font-size:12px;padding:4px 10px;border-radius:14px;border:1px solid #3a4b40}
-nav a.ok{color:#fff;background:var(--g);border-color:var(--g)}
+body{background:var(--bg);color:var(--ink);font-family:"DM Sans","Segoe UI",system-ui,sans-serif;font-size:14px;line-height:1.45}
+.site-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:16px;padding:0 max(20px,calc((100% - 1240px)/2));height:68px;background:var(--card);border-bottom:1px solid var(--line);box-shadow:0 2px 12px rgba(27,42,33,.06)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.04em;text-decoration:none;color:var(--ink)}
+.brand-mark{display:grid;place-items:center;width:36px;height:36px;border-radius:11px;color:#fff;background:linear-gradient(135deg,var(--g),#0f766e);box-shadow:0 8px 18px rgba(29,111,66,.3);font-size:1rem;font-weight:800}
+.brand small{display:none}
+.back-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;transition:all .2s}
+.back-btn:hover{border-color:var(--g);color:var(--g);background:var(--gt)}
+.tool-info{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.tool-icon{display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:var(--gt);color:var(--g);flex-shrink:0}
+.tool-icon svg{width:20px;height:20px}
+.tool-title{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header-actions{display:flex;align-items:center;gap:10px;margin-left:auto}
+.reset-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.reset-btn:hover{border-color:var(--r);color:var(--r);background:var(--rt)}
 main{max-width:780px;margin:0 auto;padding:18px 14px 60px;display:flex;flex-direction:column;gap:16px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;scroll-margin-top:60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;scroll-margin-top:80px}
 .card.locked{opacity:.45;pointer-events:none}
 h2{font-size:16px;display:flex;align-items:center;gap:10px}
 h2 i{font-style:normal;width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;display:grid;place-items:center}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.opt{text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:3px;font:inherit;color:inherit}
+.opt{text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:3px;font:inherit;color:inherit;transition:all .2s}
 .opt span{font-size:12px;color:var(--mut)}
 .opt.on{border-color:var(--g);background:var(--gt)}
 button,.upl{font:inherit}
-.primary{background:var(--g);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer}
+.primary{background:var(--g);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer;transition:all .2s}
+.primary:hover{filter:brightness(1.1)}
 .primary:disabled{background:#b5c4ba;cursor:not-allowed}
-.ghost{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 11px;cursor:pointer;color:var(--ink);font-size:12px}
-.ghost:hover{background:#f4f6f4}
-.upl{display:flex;align-items:center;justify-content:center;border:1.5px dashed #aab8ae;border-radius:8px;padding:14px;cursor:pointer;color:var(--mut)}
-.upl:hover{border-color:var(--g);color:var(--g)}
+.ghost{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 11px;cursor:pointer;color:var(--ink);font-size:12px;transition:all .2s}
+.ghost:hover{background:#f4f6f4;border-color:var(--g);color:var(--g)}
+.upl{display:flex;align-items:center;justify-content:center;border:1.5px dashed #aab8ae;border-radius:8px;padding:14px;cursor:pointer;color:var(--mut);transition:all .2s}
+.upl:hover{border-color:var(--g);color:var(--g);background:var(--gt)}
 input[type=file]{display:none}
 .cf{border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:9px;background:#f8faf8}
 .cf[hidden]{display:none}
@@ -47,7 +60,7 @@ input[type=file]{display:none}
 .detect{font-size:12px;color:var(--mut);background:#f4f6f4;border-radius:8px;padding:8px 10px}
 .detect .ok{color:var(--g)}.detect .bad{color:var(--r)}
 .stats{display:flex;gap:6px;flex-wrap:wrap}
-.stat{border:1.5px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;cursor:pointer;font:inherit;color:inherit;text-align:left}
+.stat{border:1.5px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;cursor:pointer;font:inherit;color:inherit;text-align:left;transition:all .2s}
 .stat b{font-size:18px;display:block;line-height:1.1}
 .stat span{font-size:11px;color:var(--mut)}
 .stat.on{border-color:var(--ink)}
@@ -66,12 +79,31 @@ input[type=file]{display:none}
 .gh .th{width:34px;height:34px}
 .warn{background:var(--rt);color:var(--r);border-radius:8px;padding:8px 10px;font-size:12px}
 .empty{color:var(--mut);text-align:center;padding:16px;font-size:13px}
-@media(max-width:520px){.opts{grid-template-columns:1fr}.item{grid-template-columns:40px 1fr}.acts{grid-column:1/-1;justify-content:flex-start}}
+.step-nav{display:flex;gap:8px;justify-content:center;padding:4px 0 8px;flex-wrap:wrap}
+.step-nav a{color:var(--mut);text-decoration:none;font-size:12px;padding:6px 14px;border-radius:16px;border:1px solid var(--line);background:var(--card);font-weight:600;transition:all .2s}
+.step-nav a.ok{color:#fff;background:var(--g);border-color:var(--g)}
+.step-nav a:hover:not(.ok){border-color:var(--g);color:var(--g)}
+@media(max-width:520px){.opts{grid-template-columns:1fr}.item{grid-template-columns:40px 1fr}.acts{grid-column:1/-1;justify-content:flex-start}.site-header{padding:0 12px;gap:8px}.brand-mark{width:30px;height:30px;font-size:.85rem}.back-btn span,.reset-btn span{display:none}.tool-title{font-size:13px}}
 </style>
 </head>
 <body>
-<header><h1>Recipe doc → Excel</h1>
-<nav><a href="#s1" id="n1" class="ok">1 Convert</a><a href="#s2" id="n2">2 Images</a><a href="#s3" id="n3">3 Download</a></nav></header>
+<header class="site-header">
+  <a class="brand" href="../../index.html" aria-label="OmniTools home">
+    <span class="brand-mark">O</span>
+    <small>OmniTools</small>
+  </a>
+  <a class="back-btn" href="../../index.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg><span>Back</span></a>
+  <div class="tool-info">
+    <div class="tool-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+    </div>
+    <div class="tool-title">Recipe Doc to Excel</div>
+  </div>
+  <div class="header-actions">
+    <button class="reset-btn" id="btnReset" type="button"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg><span>Clear all</span></button>
+  </div>
+</header>
+<nav class="step-nav"><a href="#s1" id="n1" class="ok">1 Convert</a><a href="#s2" id="n2">2 Images</a><a href="#s3" id="n3">3 Download</a></nav>
 <main>
 
 <section class="card" id="s1">
@@ -354,6 +386,20 @@ $('btnMerge').onclick=async()=>{
   $('btnZip').disabled=!outputs.length;$('btnMerge').disabled=false;
 };
 $('btnZip').onclick=()=>dlBlob(new Blob([buildZip(outputs)],{type:'application/zip'}),'recipes_xlsx.zip');
+
+// ── Reset ──
+$('btnReset').onclick=()=>{
+  if(!confirm('Clear all files, images, and results?'))return;
+  entries=[];slots=[];imgList=[];outputs=[];filter='all';mode='normal';
+  $('files').innerHTML='';$('list').innerHTML='';$('outs').innerHTML='';$('stats').innerHTML='';$('hint').textContent='';
+  $('detect').hidden=true;$('warn').hidden=true;$('btnConvert').disabled=true;$('btnZip').disabled=true;$('btnMerge').disabled=false;
+  $('s2').classList.add('locked');$('s3').classList.add('locked');
+  $('n2').classList.remove('ok');$('n3').classList.remove('ok');
+  document.querySelectorAll('.opt').forEach(x=>x.classList.toggle('on',x.dataset.m==='normal'));
+  $('cf').hidden=true;
+  $('inDocx').value='';$('inImg').value='';
+  window.scrollTo({top:0,behavior:'smooth'});
+};
 </script>
 </body>
 </html>

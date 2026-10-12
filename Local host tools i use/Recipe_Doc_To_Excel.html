@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Recipe doc → Excel</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<style>
+:root{--bg:#edf0ec;--card:#fff;--ink:#1b2a21;--mut:#6b7a70;--line:#d9dfd9;--g:#1d6f42;--gt:#e3f1e8;--r:#c43b3b;--rt:#fdeceb;--a:#b7791f;--at:#fff5df}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,sans-serif;font-size:14px;line-height:1.45}
+header{position:sticky;top:0;z-index:5;background:var(--ink);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+header h1{font-size:15px;font-weight:600}
+nav{display:flex;gap:6px;margin-left:auto}
+nav a{color:#b9c7be;text-decoration:none;font-size:12px;padding:4px 10px;border-radius:14px;border:1px solid #3a4b40}
+nav a.ok{color:#fff;background:var(--g);border-color:var(--g)}
+main{max-width:780px;margin:0 auto;padding:18px 14px 60px;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;scroll-margin-top:60px}
+.card.locked{opacity:.45;pointer-events:none}
+h2{font-size:16px;display:flex;align-items:center;gap:10px}
+h2 i{font-style:normal;width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;display:grid;place-items:center}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:3px;font:inherit;color:inherit}
+.opt span{font-size:12px;color:var(--mut)}
+.opt.on{border-color:var(--g);background:var(--gt)}
+button,.upl{font:inherit}
+.primary{background:var(--g);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer}
+.primary:disabled{background:#b5c4ba;cursor:not-allowed}
+.ghost{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 11px;cursor:pointer;color:var(--ink);font-size:12px}
+.ghost:hover{background:#f4f6f4}
+.upl{display:flex;align-items:center;justify-content:center;border:1.5px dashed #aab8ae;border-radius:8px;padding:14px;cursor:pointer;color:var(--mut)}
+.upl:hover{border-color:var(--g);color:var(--g)}
+input[type=file]{display:none}
+.cf{border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:9px;background:#f8faf8}
+.cf[hidden]{display:none}
+.row2{display:flex;gap:6px}
+.row2 input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:flex;align-items:center;background:var(--gt);border-radius:14px;padding:2px 3px 2px 10px;font-size:12px}
+.chip button{background:none;border:none;cursor:pointer;color:var(--mut);padding:2px 6px;border-radius:10px}
+.chip button.on{background:var(--g);color:#fff}
+.note{font-size:12px;color:var(--mut)}
+.files{display:flex;flex-direction:column;gap:5px}
+.pill{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px}
+.pill b{flex:1;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.detect{font-size:12px;color:var(--mut);background:#f4f6f4;border-radius:8px;padding:8px 10px}
+.detect .ok{color:var(--g)}.detect .bad{color:var(--r)}
+.stats{display:flex;gap:6px;flex-wrap:wrap}
+.stat{border:1.5px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;cursor:pointer;font:inherit;color:inherit;text-align:left}
+.stat b{font-size:18px;display:block;line-height:1.1}
+.stat span{font-size:11px;color:var(--mut)}
+.stat.on{border-color:var(--ink)}
+.stat.g b{color:var(--g)}.stat.m b{color:var(--a)}.stat.r b{color:var(--r)}
+.stat.r.has{background:var(--rt);border-color:var(--r)}
+.list{display:flex;flex-direction:column;gap:6px;max-height:520px;overflow-y:auto}
+.item{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:#fff}
+.item.miss{background:var(--at)}
+.item.bad{background:var(--rt);border-color:var(--r);border-left-width:5px}
+.th{width:48px;height:48px;border-radius:6px;object-fit:cover;background:#e6eae6;display:block}
+.tt{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sub{font-size:11px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acts{display:flex;gap:5px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.tag{font-size:11px;font-weight:600;color:#fff;background:var(--r);border-radius:10px;padding:1px 8px}
+.gh{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:12px;font-weight:600;color:var(--r)}
+.gh .th{width:34px;height:34px}
+.warn{background:var(--rt);color:var(--r);border-radius:8px;padding:8px 10px;font-size:12px}
+.empty{color:var(--mut);text-align:center;padding:16px;font-size:13px}
+@media(max-width:520px){.opts{grid-template-columns:1fr}.item{grid-template-columns:40px 1fr}.acts{grid-column:1/-1;justify-content:flex-start}}
+</style>
+</head>
+<body>
+<header><h1>Recipe doc → Excel</h1>
+<nav><a href="#s1" id="n1" class="ok">1 Convert</a><a href="#s2" id="n2">2 Images</a><a href="#s3" id="n3">3 Download</a></nav></header>
+<main>
+
+<section class="card" id="s1">
+  <h2><i>1</i>Convert recipes</h2>
+  <div class="opts">
+    <button class="opt on" data-m="normal"><b>Normal template</b><span>Title, prep, total, serves, ingredients, directions, notes</span></button>
+    <button class="opt" data-m="custom"><b>Add custom fields</b><span>Your own placeholders, like calories or protein</span></button>
+  </div>
+  <div class="cf" id="cf" hidden>
+    <div class="note">Each name becomes its own column. In the doc, write it as <b>Name: value</b>. Several on one line work too, separated by | .</div>
+    <div class="row2"><input id="cfInput" placeholder="Add placeholder names, e.g. Calories, Fat, Protein" autocomplete="off"><button class="primary" id="cfAdd" style="padding:8px 14px">Add</button></div>
+    <div class="chips" id="chips"></div>
+    <div class="row2"><button class="ghost" id="cfPreset">Add nutrition set</button><button class="ghost" id="cfClear">Clear all</button></div>
+    <div class="note" id="cfMsg" style="color:var(--a)"></div>
+    <div class="note">The # on a chip keeps numbers only (259 kcal becomes 259).</div>
+  </div>
+  <label class="upl"><input type="file" id="inDocx" accept=".docx" multiple>Choose DOCX files</label>
+  <div class="files" id="files"></div>
+  <div class="detect" id="detect" hidden></div>
+  <button class="primary" id="btnConvert" disabled>Convert and continue</button>
+</section>
+
+<section class="card locked" id="s2">
+  <h2><i>2</i>Match images</h2>
+  <label class="upl"><input type="file" id="inImg" accept="image/*" multiple>Choose recipe images (names should resemble recipe titles)</label>
+  <div class="stats" id="stats"></div>
+  <div class="note" id="hint"></div>
+  <div class="list" id="list"></div>
+</section>
+
+<section class="card locked" id="s3">
+  <h2><i>3</i>Merge and download</h2>
+  <div class="warn" id="warn" hidden></div>
+  <button class="primary" id="btnMerge">Merge images into Excel</button>
+  <div class="files" id="outs"></div>
+  <button class="ghost" id="btnZip" disabled style="align-self:flex-start">Download all as ZIP</button>
+</section>
+
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function dlBlob(b,n){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click();}
+
+// ── ZIP ──
+function crc32(d){let c=0xFFFFFFFF;for(let i=0;i<d.length;i++){c^=d[i];for(let j=0;j<8;j++)c=(c&1)?(c>>>1)^0xEDB88320:c>>>1;}return(c^0xFFFFFFFF)>>>0;}
+function buildZip(es){
+  const te=new TextEncoder(),lo=[],cd=[];let off=0;
+  for(const e of es){
+    const nb=te.encode(e.name),db=new Uint8Array(e.bytes),crc=crc32(db);
+    const lh=new Uint8Array(30+nb.length),lv=new DataView(lh.buffer);
+    lv.setUint32(0,0x04034b50,true);lv.setUint16(4,20,true);lv.setUint32(14,crc,true);lv.setUint32(18,db.length,true);lv.setUint32(22,db.length,true);lv.setUint16(26,nb.length,true);lh.set(nb,30);
+    const ch=new Uint8Array(46+nb.length),cv=new DataView(ch.buffer);
+    cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);cv.setUint32(16,crc,true);cv.setUint32(20,db.length,true);cv.setUint32(24,db.length,true);cv.setUint16(28,nb.length,true);cv.setUint32(42,off,true);ch.set(nb,46);
+    lo.push(lh,db);cd.push(ch);off+=lh.length+db.length;
+  }
+  const cs=cd.reduce((s,c)=>s+c.length,0),ec=new Uint8Array(22),ev=new DataView(ec.buffer);
+  ev.setUint32(0,0x06054b50,true);ev.setUint16(8,es.length,true);ev.setUint16(10,es.length,true);ev.setUint32(12,cs,true);ev.setUint32(16,off,true);
+  const parts=[...lo,...cd,ec],out=new Uint8Array(parts.reduce((s,p)=>s+p.length,0));let pos=0;
+  for(const p of parts){out.set(p,pos);pos+=p.length;}return out;
+}
+
+// ── State ──
+let mode='normal',customFields=[],entries=[],slots=[],imgList=[],filter='all',outputs=[];
+const BUILTIN=['title','prep','total','serves','ingredients','directions','notes','image'];
+const PRESET=['Calories','Fat','Carbs','Fiber','Protein','Sodium'];
+const fields=()=>mode==='custom'?customFields:[];
+
+// ── Custom fields ──
+const norm=s=>String(s).toLowerCase().replace(/\([^)]*\)/g,'').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+const fkey=n=>n.trim().replace(/[^\w\s-]/g,'').replace(/\s+/g,'_');
+try{const s=localStorage.getItem('rx_fields');if(s)customFields=JSON.parse(s);}catch(e){}
+if(!customFields.length)customFields=PRESET.map(n=>({name:n,key:n,numeric:false}));
+function fieldsChanged(){try{localStorage.setItem('rx_fields',JSON.stringify(customFields));}catch(e){}renderChips();reparse();}
+function renderChips(){
+  const b=$('chips');b.innerHTML='';
+  customFields.forEach((f,i)=>{
+    const c=document.createElement('div');c.className='chip';
+    const l=document.createElement('span');l.textContent=f.name;
+    const n=document.createElement('button');n.textContent='#';n.title='Numbers only';if(f.numeric)n.className='on';
+    n.onclick=()=>{f.numeric=!f.numeric;fieldsChanged();};
+    const d=document.createElement('button');d.textContent='✕';d.title='Remove';
+    d.onclick=()=>{customFields.splice(i,1);fieldsChanged();};
+    c.append(l,n,d);b.appendChild(c);
+  });
+}
+function addFields(raw){
+  const bad=[];let n=0;
+  for(const name of String(raw).split(/[,\n;]/).map(x=>x.trim()).filter(Boolean)){
+    const k=fkey(name),m=norm(name);
+    if(!k||!m)bad.push(name+' (invalid)');
+    else if(BUILTIN.includes(m))bad.push(name+' (built in)');
+    else if(customFields.some(f=>norm(f.name)===m))bad.push(name+' (already added)');
+    else{customFields.push({name,key:k,numeric:false});n++;}
+  }
+  $('cfMsg').textContent=bad.length?'Skipped: '+bad.join(', '):'';
+  if(n)fieldsChanged();
+}
+$('cfAdd').onclick=()=>{addFields($('cfInput').value);$('cfInput').value='';};
+$('cfInput').onkeydown=e=>{if(e.key==='Enter')$('cfAdd').click();};
+$('cfPreset').onclick=()=>addFields(PRESET.join(','));
+$('cfClear').onclick=()=>{customFields=[];fieldsChanged();};
+document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+  mode=b.dataset.m;
+  document.querySelectorAll('.opt').forEach(x=>x.classList.toggle('on',x===b));
+  $('cf').hidden=mode!=='custom';reparse();
+});
+renderChips();
+
+// ── Parser ──
+const clean=t=>t.replace(/\s+/g,' ').trim();
+function parseRecipes(text){
+  const F=fields(),lookup={};F.forEach(f=>lookup[norm(f.name)]=f);
+  const val=l=>l.slice(l.indexOf(':')+1).trim();
+  const blank=()=>{const o={Title:'',Prep:'',Total:'',Serves:'',Ingredients:'',Directions:'',Notes:''};F.forEach(f=>o[f.key]='');return o;};
+  const store=(f,v)=>{if(f.numeric){const m=v.replace(/,/g,'').match(/-?\d+(\.\d+)?/);cur[f.key]=m?Number(m[0]):v;}else cur[f.key]=v;};
+  let R=[],cur=null,sec=null,dc=1;
+  for(let line of text.split('\n').map(clean).filter(l=>l)){
+    let lo=line.toLowerCase();
+    if(lo.startsWith('recipe title:')){if(cur)R.push(cur);cur=blank();cur.Title=val(line);sec=null;dc=1;continue;}
+    if(!cur)continue;
+    if(F.length){
+      const left=[];let hit=false;
+      for(const seg of line.split('|')){
+        const m=seg.match(/^\s*([^:]{1,40}?)\s*[:：]\s*(.*)$/),f=m&&lookup[norm(m[1])];
+        if(f){hit=true;const v=m[2].trim();if(v){store(f,v);if(sec&&sec[0]==='C')sec=null;}else sec='C:'+f.key;}
+        else left.push(seg.trim());
+      }
+      if(hit){line=left.filter(Boolean).join(' | ');if(!line)continue;lo=line.toLowerCase();}
+    }
+    if(lo.startsWith('prep time')){cur.Prep=val(line);continue;}
+    if(lo.startsWith('total time')){cur.Total=val(line);continue;}
+    if(/^serv(es|ings?)/.test(lo)){cur.Serves=val(line);continue;}
+    if(lo.startsWith('ingredients')){sec='I';continue;}
+    if(lo.startsWith('directions')){sec='D';continue;}
+    if(lo.startsWith('notes')||lo.startsWith('nutrition')){sec='N';continue;}
+    if(sec==='I')cur.Ingredients+='• '+line+'\n';
+    else if(sec==='D')cur.Directions+=dc+++'. '+line+'\n';
+    else if(sec==='N')cur.Notes+='• '+line+'\n';
+    else if(sec&&sec[0]==='C')cur[sec.slice(2)]+='• '+line+'\n';
+  }
+  if(cur)R.push(cur);return R;
+}
+function makeRows(recs){
+  const cols=['Title','Prep','Total','Serves','Ingredients','Directions','Notes',...fields().map(f=>f.key)],rows=[];
+  for(let i=0;i<recs.length;i+=2){
+    const row={};
+    for(const [p,r] of [['Top',recs[i]],['Bottom',recs[i+1]||{}]]){cols.forEach(c=>row[p+'_'+c]=r[c]??'');row[p+'_Image']='';}
+    rows.push(row);
+  }
+  return rows;
+}
+function build(e){const rec=parseRecipes(e.text);e.recs=rec;e.rows=makeRows(rec);}
+function reparse(){entries.filter(e=>e.status==='done').forEach(build);clearOuts();renderDetect();}
+function renderDetect(){
+  const done=entries.filter(e=>e.status==='done'),F=fields(),box=$('detect');
+  if(!done.length||!F.length){box.hidden=true;return;}
+  const all=done.flatMap(e=>e.recs);
+  box.innerHTML='Found in '+all.length+' recipes: '+F.map(f=>{const n=all.filter(r=>r[f.key]!==''&&r[f.key]!=null).length;return `<span class="${n===all.length?'ok':n===0?'bad':''}">${esc(f.name)} ${n}/${all.length}</span>`;}).join(' · ');
+  box.hidden=false;
+}
+
+// ── Step 1: files + convert ──
+$('inDocx').onchange=function(){
+  for(const f of [...this.files].filter(f=>/\.docx$/i.test(f.name))){
+    const pill=document.createElement('div');pill.className='pill';
+    pill.innerHTML=`<span>📄</span><b>${esc(f.name)}</b><span class="st">⏳</span>`;
+    $('files').appendChild(pill);
+    entries.push({file:f,base:f.name.replace(/\.docx$/i,''),status:'idle',pill});
+  }
+  $('btnConvert').disabled=!entries.some(e=>e.status==='idle');this.value='';
+};
+$('btnConvert').onclick=async()=>{
+  $('btnConvert').disabled=true;
+  for(const e of entries.filter(x=>x.status==='idle')){
+    const st=e.pill.querySelector('.st');st.textContent='…';
+    try{
+      e.text=(await mammoth.extractRawText({arrayBuffer:await e.file.arrayBuffer()})).value;
+      build(e);if(!e.recs.length)throw 0;
+      e.status='done';st.textContent='✅';
+      e.rows.forEach((row,ri)=>['Top','Bottom'].forEach(side=>{const t=String(row[side+'_Title']||'').trim();if(t)slots.push({entry:e,ri,side,title:t,img:null,manual:false,removed:false});}));
+    }catch(err){e.status='error';st.textContent='❌ no recipes found';}
+  }
+  renderDetect();autoMatch();render();
+  if(slots.length)$('s2').scrollIntoView({behavior:'smooth'});
+};
+
+// ── Images ──
+const cleanImg=n=>n.replace(/\.[^.]+$/,'').replace(/_\d{12,}$/,'').replace(/_/g,' ').toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+function score(title,ic){const w=norm(title).split(' ').filter(x=>x.length>2);return w.length?w.filter(x=>ic.includes(x)).length/w.length:0;}
+function findImage(title){let b=null,bs=0;for(const i of imgList){const s=score(title,i.clean);if(s>bs){bs=s;b=i;}}return bs>=0.6?b:null;}
+function autoMatch(){slots.forEach(s=>{if(!s.manual&&!s.removed)s.img=findImage(s.title);});}
+function hash(s){let h=2166136261;for(let i=0;i<s.length;i+=7){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return s.length+'_'+(h>>>0);}
+async function loadImg(f){
+  let u=await new Promise(r=>{const fr=new FileReader();fr.onload=e=>r(e.target.result);fr.readAsDataURL(f);});
+  if(!/^data:image\/(png|jpe?g|gif);/.test(u))u=await new Promise(r=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;c.getContext('2d').drawImage(im,0,0);r(c.toDataURL('image/png'));};im.onerror=()=>r(u);im.src=u;});
+  return{name:f.name,clean:cleanImg(f.name),dataUrl:u,key:hash(u)};
+}
+$('inImg').onchange=async function(){
+  for(const f of [...this.files].filter(f=>f.type.startsWith('image/')))imgList.push(await loadImg(f));
+  this.value='';autoMatch();clearOuts();render();
+};
+function pick(s){
+  const i=document.createElement('input');i.type='file';i.accept='image/*';
+  i.onchange=async()=>{if(!i.files[0])return;s.img=await loadImg(i.files[0]);s.manual=true;s.removed=false;clearOuts();render();};
+  i.click();
+}
+
+// ── Step 2 render ──
+function render(){
+  const has=slots.length>0;
+  $('s2').classList.toggle('locked',!has);$('s3').classList.toggle('locked',!has);
+  $('n2').classList.toggle('ok',has);$('n3').classList.toggle('ok',has);
+  if(!has)return;
+  const g=new Map();slots.forEach(s=>{if(s.img){if(!g.has(s.img.key))g.set(s.img.key,[]);g.get(s.img.key).push(s);}});
+  const matched=slots.filter(s=>s.img).length,sharedG=[...g.values()].filter(a=>a.length>1),sharedN=sharedG.reduce((n,a)=>n+a.length,0);
+  const used=new Set(g.keys()),unused=new Set(imgList.map(i=>i.key).filter(k=>!used.has(k))).size;
+  const isSh=s=>s.img&&g.get(s.img.key).length>1;
+  const S=[['all','all','All recipes',slots.length,''],['matched','matched','Matched',matched,'g'],['unmatched','unmatched','Unmatched',slots.length-matched,'m'],['shared','shared','Shared image · '+sharedG.length+' pic'+(sharedG.length===1?'':'s'),sharedN,'r'+(sharedN?' has':'')]];
+  $('stats').innerHTML=S.map(x=>`<button class="stat ${x[4]} ${filter===x[0]?'on':''}" data-f="${x[0]}"><b>${x[3]}</b><span>${x[2]}</span></button>`).join('');
+  $('stats').querySelectorAll('.stat').forEach(b=>b.onclick=()=>{filter=b.dataset.f;render();});
+  $('hint').textContent=sharedN?'Red recipes use the same picture. Remove the image from the ones that should not have it; red clears when only one is left.':(imgList.length?'':'Upload images to start matching.')+(unused?` ${unused} uploaded image${unused>1?'s are':' is'} not used by any recipe.`:'');
+  const w=$('warn');w.hidden=!sharedN;w.textContent=`${sharedN} recipes still share an image (${sharedG.length} picture${sharedG.length>1?'s':''}). You can merge anyway, or fix them in step 2.`;
+  const list=$('list');list.innerHTML='';
+  let rows;
+  if(filter==='shared')rows=sharedG.flat();
+  else rows=slots.filter(s=>filter==='all'||(filter==='matched'?s.img:!s.img));
+  if(!rows.length){list.innerHTML='<div class="empty">Nothing here.</div>';}
+  let lastKey=null;
+  for(const s of rows){
+    if(filter==='shared'&&s.img.key!==lastKey){
+      lastKey=s.img.key;const h=document.createElement('div');h.className='gh';
+      h.innerHTML=`<img class="th" src="${s.img.dataUrl}" alt=""><span>${esc(s.img.name)} used by ${g.get(lastKey).length} recipes</span>`;list.appendChild(h);
+    }
+    const sh=isSh(s),d=document.createElement('div');d.className='item'+(sh?' bad':s.img?'':' miss');
+    d.innerHTML=(s.img?`<img class="th" src="${s.img.dataUrl}" alt="">`:'<div class="th"></div>')+
+      `<div style="min-width:0"><div class="tt" title="${esc(s.title)}">${esc(s.title)}</div><div class="sub">${esc(s.entry.base)} · ${s.img?esc(s.img.name):'no image'}</div></div><div class="acts"></div>`;
+    const a=d.querySelector('.acts');
+    if(sh){const t=document.createElement('span');t.className='tag';t.textContent='Shared ×'+g.get(s.img.key).length;a.appendChild(t);}
+    if(s.img){const r=document.createElement('button');r.className='ghost';r.textContent='Remove image';r.onclick=()=>{s.img=null;s.removed=true;s.manual=false;clearOuts();render();};a.appendChild(r);}
+    const u=document.createElement('button');u.className='ghost';u.textContent=s.img?'Replace':'Upload image';u.onclick=()=>pick(s);a.appendChild(u);
+    list.appendChild(d);
+  }
+}
+
+// ── Step 3: build XLSX ──
+function clearOuts(){outputs=[];$('outs').innerHTML='';$('btnZip').disabled=true;}
+const extOf=u=>({'image/jpeg':'jpeg','image/jpg':'jpeg','image/png':'png','image/gif':'gif'})[u.split(';')[0].split(':')[1]]||'png';
+function toBuf(u){const b=atob(u.split(',')[1]),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a.buffer;}
+async function buildXlsx(rows,getImg){
+  const wb=new ExcelJS.Workbook(),ws=wb.addWorksheet('Recipes'),keys=Object.keys(rows[0]||{});
+  const hr=ws.addRow(keys);hr.font={bold:true,color:{argb:'FFFFFFFF'}};hr.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1D6F42'}};hr.height=20;
+  keys.forEach((k,i)=>{ws.getColumn(i+1).width=k.endsWith('_Image')?22:k.endsWith('_Title')?28:/_(Ingredients|Directions)$/.test(k)?40:18;});
+  const imgCols=keys.map((k,i)=>({k,i})).filter(x=>x.k.endsWith('_Image'));
+  rows.forEach((row,ri)=>{
+    const xr=ws.addRow(keys.map(k=>row[k]??''));xr.alignment={wrapText:true,vertical:'top'};
+    if(imgCols.some(c=>getImg(ri,c.k.replace('_Image',''))))xr.height=120;
+    for(const c of imgCols){
+      const img=getImg(ri,c.k.replace('_Image',''));if(!img)continue;
+      try{const id=wb.addImage({buffer:toBuf(img.dataUrl),extension:extOf(img.dataUrl)});
+        ws.addImage(id,{tl:{col:c.i,row:ri+1},br:{col:c.i+1,row:ri+2},editAs:'oneCell'});}catch(e){console.warn(e);}
+    }
+  });
+  ws.views=[{state:'frozen',ySplit:1}];
+  return new Uint8Array(await wb.xlsx.writeBuffer());
+}
+$('btnMerge').onclick=async()=>{
+  $('btnMerge').disabled=true;clearOuts();
+  for(const e of entries.filter(x=>x.status==='done')){
+    const pill=document.createElement('div');pill.className='pill';
+    pill.innerHTML=`<span>📊</span><b>${esc(e.base)}.xlsx</b><span class="st">…</span>`;$('outs').appendChild(pill);
+    try{
+      const get=(ri,side)=>{const s=slots.find(x=>x.entry===e&&x.ri===ri&&x.side===side);return s&&s.img;};
+      const bytes=await buildXlsx(e.rows,get),name=e.base+(slots.some(s=>s.entry===e&&s.img)?'_with_images':'')+'.xlsx';
+      outputs.push({name,bytes});pill.querySelector('.st').textContent='✅';
+      const b=document.createElement('button');b.className='ghost';b.textContent='Download';
+      b.onclick=()=>dlBlob(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),name);pill.appendChild(b);
+    }catch(err){console.error(err);pill.querySelector('.st').textContent='❌';}
+  }
+  $('btnZip').disabled=!outputs.length;$('btnMerge').disabled=false;
+};
+$('btnZip').onclick=()=>dlBlob(new Blob([buildZip(outputs)],{type:'application/zip'}),'recipes_xlsx.zip');
+</script>
+</body>
+</html>

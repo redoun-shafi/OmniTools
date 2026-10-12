@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Recipe Index Generator</title>
+<style>
+:root{--bg:#eef1f5;--card:#fff;--ink:#14202e;--mut:#6a7787;--line:#d6dce4;--acc:#0f766e;--acct:#dff3f0;--bad:#c2410c;--badt:#fdeee6;--head:#e6ebf1}
+body.dark{--bg:#0e1620;--card:#16212d;--ink:#e6edf4;--mut:#8b9aab;--line:#2a3948;--acc:#2dd4bf;--acct:#12333a;--bad:#fb923c;--badt:#3a2415;--head:#1f2d3b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,sans-serif;font-size:14px;transition:background .25s}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;gap:12px}
+h1{font-size:20px}
+header small{color:var(--mut);display:block;font-size:12px}
+button,select,input{font:inherit;color:inherit}
+.btn{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:600}
+body.dark .btn{color:#06201d}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);font-weight:400}
+.btn.sm{padding:4px 10px;font-size:12px}
+main{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:16px;padding:0 20px 30px;align-items:start}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.card h2{font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.right{display:flex;flex-direction:column;gap:16px}
+.grid-wrap{max-height:70vh;overflow:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:0}
+th{background:var(--head);position:sticky;top:0;z-index:2;font-size:12px;padding:6px;color:var(--mut)}
+th.n{position:static;width:34px;text-align:center}
+td input{width:100%;border:none;outline:none;background:transparent;padding:6px 8px}
+td input:focus{background:var(--acct)}
+td.pg{width:90px}
+tr.bad td{background:var(--badt)}
+tr.bad th.n{background:var(--bad);color:#fff}
+.ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut)}
+select,.ctl input{border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:var(--card);color:var(--ink)}
+.ctl input[hidden],label[hidden]{display:none}
+.sample{font-family:Georgia,serif;font-size:16px;background:var(--acct);border-radius:8px;padding:10px 12px;overflow-x:auto;white-space:pre}
+.stats{display:flex;gap:8px;flex-wrap:wrap;font-size:12px}
+.chip{border-radius:14px;padding:3px 10px;background:var(--head);color:var(--mut)}
+.chip.bad{background:var(--badt);color:var(--bad);font-weight:600}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.col{border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column}
+.col .hd{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-bottom:1px solid var(--line);font-size:12px;color:var(--mut)}
+.col pre{font-family:Georgia,serif;font-size:14px;line-height:1.5;padding:10px;white-space:pre;overflow-x:auto;min-height:60px}
+.empty{color:var(--mut);padding:24px;text-align:center}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:20px;opacity:0;transition:.2s;pointer-events:none}
+#toast.on{opacity:1;transform:translateX(-50%)}
+@media(max-width:820px){main{grid-template-columns:1fr}.grid-wrap{max-height:50vh}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Recipe Index Generator</h1><small>created by REDOUN</small></div>
+  <button class="btn ghost" id="theme">🌙 / ☀️</button>
+</header>
+<main>
+  <section class="card">
+    <h2>Recipes <span><button class="btn ghost sm" id="clear">Clear all</button></span></h2>
+    <div class="grid-wrap"><table><thead><tr><th class="n"></th><th>Recipe name</th><th>Page</th></tr></thead><tbody id="grid"></tbody></table></div>
+    <div class="stats" style="color:var(--mut)">Paste two columns from Excel, or type. Enter moves down.</div>
+  </section>
+
+  <div class="right">
+    <section class="card">
+      <h2>Style</h2>
+      <div class="ctl">
+        <label>Leader style<select id="style"></select></label>
+        <label>Leader length<select id="count"></select></label>
+        <label id="custLbl" hidden>Custom character<input id="cust" maxlength="1" placeholder="1 character"></label>
+        <label>Columns<select id="ncols"><option>1</option><option>2</option><option>3</option><option selected>4</option></select></label>
+      </div>
+      <div class="sample" id="sample"></div>
+    </section>
+
+    <section class="card">
+      <h2>Index <button class="btn" id="copy">Copy</button></h2>
+      <div class="stats" id="stats"></div>
+      <div class="cols" id="cols"></div>
+    </section>
+  </div>
+</main>
+<div id="toast"></div>
+<script>
+const $=id=>document.getElementById(id);
+const ROWS=200;
+const STYLES=[['dots','Dots ( . )','.'],['hyphens','Hyphens ( - )','-'],['underscores','Underscores ( _ )','_'],['mid','Middle dots ( · )','·'],['commas','Commas ( , )',','],['asterisks','Asterisks ( * )','*'],['tildes','Tildes ( ~ )','~'],['custom','Custom…','']];
+$('style').innerHTML=STYLES.map(s=>`<option value="${s[0]}">${s[1]}</option>`).join('');
+$('count').innerHTML=Array.from({length:11},(_,i)=>`<option value="${i}"${i===8?' selected':''}>${i===0?'0 (space only)':i}</option>`).join('');
+
+// grid
+const gridRows=[];
+function addRows(n){
+  const f=document.createDocumentFragment();
+  for(let i=0;i<n;i++){
+    const r=gridRows.length,tr=document.createElement('tr');
+    tr.innerHTML=`<th class="n">${r+1}</th><td><input data-r="${r}" data-c="0"></td><td class="pg"><input data-r="${r}" data-c="1"></td>`;
+    const ins=tr.querySelectorAll('input');gridRows.push({tr,a:ins[0],b:ins[1]});f.appendChild(tr);
+  }
+  $('grid').appendChild(f);
+}
+addRows(ROWS);
+$('grid').addEventListener('input',schedule);
+$('grid').addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||e.target.tagName!=='INPUT')return;
+  e.preventDefault();const r=+e.target.dataset.r+1,c=e.target.dataset.c;
+  if(r>=gridRows.length)addRows(20);
+  gridRows[r][c==='0'?'a':'b'].focus();
+});
+$('grid').addEventListener('paste',e=>{
+  const t=e.target;if(t.tagName!=='INPUT')return;
+  e.preventDefault();
+  const lines=e.clipboardData.getData('text').replace(/\r/g,'').split('\n');
+  while(lines.length&&!lines[lines.length-1].trim())lines.pop();
+  const r0=+t.dataset.r,c0=+t.dataset.c;
+  while(r0+lines.length>gridRows.length)addRows(50);
+  lines.forEach((line,i)=>{
+    let cells=line.split('\t');
+    if(cells.length===1&&c0===0){const m=line.match(/^(.*\S)\s*,\s*(\d+)\s*$/);if(m)cells=[m[1],m[2]];}
+    cells.forEach((v,j)=>{const cell=gridRows[r0+i];const inp=(c0+j===0)?cell.a:(c0+j===1)?cell.b:null;if(inp)inp.value=v.trim();});
+  });
+  schedule();
+});
+$('clear').onclick=()=>{gridRows.forEach(r=>{r.a.value='';r.b.value='';});update();};
+
+// leader
+function leaderChar(){const s=STYLES.find(x=>x[0]===$('style').value);return s[0]==='custom'?$('cust').value:s[2];}
+function sep(){const n=+$('count').value,ch=leaderChar();return(n>0&&ch)?' '+ch.repeat(n)+' ':' ';}
+$('style').onchange=()=>{$('count').value='8';$('custLbl').hidden=$('style').value!=='custom';if(!$('custLbl').hidden)$('cust').focus();update();};
+['count','cust','ncols'].forEach(id=>$(id).addEventListener('input',update));
+
+// build
+let raf=0;function schedule(){cancelAnimationFrame(raf);raf=requestAnimationFrame(update);}
+let fullText='';
+function update(){
+  const data=[],missing=[];
+  gridRows.forEach((r,i)=>{
+    const name=r.a.value.trim(),page=r.b.value.trim();
+    const bad=(name&&!page)||(!name&&page);
+    r.tr.classList.toggle('bad',!!bad);
+    if(bad)missing.push(i+1);
+    if(name&&page)data.push({name,page});
+  });
+  const s=sep();
+  $('sample').textContent='Chicken Soup'+s+'12';
+  data.sort((a,b)=>a.name.localeCompare(b.name,undefined,{sensitivity:'base',numeric:true}));
+  const items=[];let cur='';
+  for(const d of data){
+    let L=d.name.charAt(0).toUpperCase();if(!/[A-Z]/i.test(L))L='#';
+    if(L!==cur){cur=L;items.push({h:1,t:L});}
+    items.push({t:d.name+s+d.page});
+  }
+  const n=+$('ncols').value,size=Math.ceil(items.length/n),cols=Array.from({length:n},()=>[]);
+  let ci=0;
+  items.forEach((it,i)=>{
+    if(ci<n-1&&cols[ci].length>=size)ci++;
+    cols[ci].push(it);
+  });
+  // never leave a heading alone at the bottom of a column
+  for(let c=0;c<n-1;c++){const l=cols[c][cols[c].length-1];if(l&&l.h){cols[c].pop();cols[c+1].unshift(l);}}
+  const texts=cols.map(col=>col.map((it,i)=>(it.h&&i>0?'\n':'')+it.t).join('\n'));
+  fullText=texts.map((t,i)=>`==============================\nCOLUMN ${i+1}\n==============================\n\n${t}`).join('\n\n\n');
+  $('stats').innerHTML=`<span class="chip">${data.length} recipes</span>`+(missing.length?`<span class="chip bad">Name or page missing in row${missing.length>1?'s':''}: ${missing.slice(0,12).join(', ')}${missing.length>12?'…':''}</span>`:'');
+  const box=$('cols');box.innerHTML='';
+  if(!data.length){box.innerHTML='<div class="empty">Add recipe names and page numbers on the left. The index builds as you type.</div>';return;}
+  texts.forEach((t,i)=>{
+    const d=document.createElement('div');d.className='col';
+    d.innerHTML=`<div class="hd"><span>Column ${i+1}</span><button class="btn ghost sm">Copy</button></div><pre></pre>`;
+    d.querySelector('pre').textContent=t;
+    d.querySelector('button').onclick=()=>copy(t,'Column '+(i+1)+' copied');
+    box.appendChild(d);
+  });
+}
+
+// copy
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.id);toast.id=setTimeout(()=>t.classList.remove('on'),1600);}
+async function copy(text,msg){
+  if(!text){toast('Nothing to copy yet');return;}
+  try{await navigator.clipboard.writeText(text);}
+  catch(e){const a=document.createElement('textarea');a.value=text;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();}
+  toast(msg||'Copied');
+}
+$('copy').onclick=()=>copy(fullText,'Index copied');
+
+// theme
+function setTheme(d){document.body.classList.toggle('dark',d);try{localStorage.setItem('ri_dark',d?'1':'0');}catch(e){}}
+let dark=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches;
+try{const s=localStorage.getItem('ri_dark');if(s!==null)dark=s==='1';}catch(e){}
+document.body.classList.toggle('dark',dark);
+$('theme').onclick=()=>setTheme(!document.body.classList.contains('dark'));
+update();
+</script>
+</body>
+</html>

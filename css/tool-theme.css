@@ -1,13 +1,13 @@
 :root {
-  --primary:#496a3d; --secondary:#9a6b3f; --accent:#d7a84f;
-  --tool-bg:#f5f1e8; --tool-surface:#fffdf8; --tool-surface-soft:#eee8d9;
-  --tool-border:#d9d0bd; --tool-text:#243027; --tool-muted:#6d756c;
-  --tool-danger:#b73b32; --tool-success:#3f7a4e;
+  --primary:#1d6f42; --secondary:#0f766e; --accent:#34a853;
+  --tool-bg:#edf0ec; --tool-surface:#ffffff; --tool-surface-soft:#e8ede8;
+  --tool-border:#d9dfd9; --tool-text:#1b2a21; --tool-muted:#6b7a70;
+  --tool-danger:#c43b3b; --tool-success:#1d6f42;
   --bg:var(--tool-bg); --surface:var(--tool-surface); --border:var(--tool-border);
   --text:var(--tool-text); --muted:var(--tool-muted);
 }
-[data-theme="dark"] { --primary:#9fbd74; --secondary:#d39b5f; --accent:#e3bf68; --tool-bg:#172019; --tool-surface:#213025; --tool-surface-soft:#293a2b; --tool-border:#405542; --tool-text:#f5f1e8; --tool-muted:#b9c3b2; --tool-danger:#f17a67; --tool-success:#91cb8d; }
-[data-theme="colorful"] { --primary:#5c4fb1; --secondary:#d26b48; --accent:#e2ad45; --tool-bg:#f5f0ff; --tool-surface:#fffaff; --tool-surface-soft:#eee8ff; --tool-border:#d9d0ef; --tool-text:#26203d; --tool-muted:#716a84; --tool-danger:#c63f50; --tool-success:#3d8b68; }
+[data-theme="dark"] { --primary:#2dd4bf; --secondary:#14b8a6; --accent:#4ade80; --tool-bg:#0e1620; --tool-surface:#16212d; --tool-surface-soft:#1a2836; --tool-border:#2a3948; --tool-text:#e6edf4; --tool-muted:#8b9aab; --tool-danger:#fb923c; --tool-success:#4ade80; }
+[data-theme="colorful"] { --primary:#1d6f42; --secondary:#b7791f; --accent:#34a853; --tool-bg:#f0f4ee; --tool-surface:#ffffff; --tool-surface-soft:#e4ede0; --tool-border:#c8d6c2; --tool-text:#1b2a21; --tool-muted:#5e7264; --tool-danger:#c43b3b; --tool-success:#1d6f42; }
 
 .theme-control select { min-height: 40px; border: 1px solid var(--tool-border); border-radius: 10px; background: var(--tool-surface); color: var(--tool-text); padding: 8px 28px 8px 10px; font: 600 12px "DM Sans", sans-serif; cursor: pointer; }
 html[data-theme] .extension-hero { background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 13%, var(--tool-surface)), color-mix(in srgb, var(--secondary) 10%, var(--tool-surface))); }
