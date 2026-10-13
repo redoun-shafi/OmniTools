@@ -75,10 +75,20 @@ input[type=file]{display:none}
 .sub{font-size:11px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .acts{display:flex;gap:5px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
 .tag{font-size:11px;font-weight:600;color:#fff;background:var(--r);border-radius:10px;padding:1px 8px}
+.tag.gray{background:var(--mut)}
 .gh{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:12px;font-weight:600;color:var(--r)}
 .gh .th{width:34px;height:34px}
 .warn{background:var(--rt);color:var(--r);border-radius:8px;padding:8px 10px;font-size:12px}
 .empty{color:var(--mut);text-align:center;padding:16px;font-size:13px}
+.primary.sm{padding:5px 10px;font-size:12px}
+.tray{border:1.5px dashed var(--a);background:var(--at);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.tray-h{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:13px}
+.tray-b{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;min-height:30px}
+.ti{flex:0 0 76px;cursor:grab;text-align:center;font-size:10px;color:var(--mut);border:2px solid transparent;border-radius:8px;padding:2px;background:#fff}
+.ti img{width:68px;height:68px;object-fit:cover;border-radius:6px;display:block;margin:0 auto 2px;pointer-events:none}
+.ti span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ti.sel{border-color:var(--g)}
+.item.over{outline:2px dashed var(--g);background:var(--gt)}
 .step-nav{display:flex;gap:8px;justify-content:center;padding:4px 0 8px;flex-wrap:wrap}
 .step-nav a{color:var(--mut);text-decoration:none;font-size:12px;padding:6px 14px;border-radius:16px;border:1px solid var(--line);background:var(--card);font-weight:600;transition:all .2s}
 .step-nav a.ok{color:#fff;background:var(--g);border-color:var(--g)}
@@ -129,6 +139,8 @@ input[type=file]{display:none}
 <section class="card locked" id="s2">
   <h2><i>2</i>Match images</h2>
   <label class="upl"><input type="file" id="inImg" accept="image/*" multiple>Choose recipe images (names should resemble recipe titles)</label>
+
+  <div class="tray"><div class="tray-h"><b id="trayN"></b><span class="note">Drag an image onto a recipe below, or click an image and press "Place here".</span></div><div class="tray-b" id="trayB"></div></div>
   <div class="stats" id="stats"></div>
   <div class="note" id="hint"></div>
   <div class="list" id="list"></div>
@@ -167,7 +179,7 @@ function buildZip(es){
 }
 
 // ── State ──
-let mode='normal',customFields=[],entries=[],slots=[],imgList=[],filter='all',outputs=[];
+let mode='normal',customFields=[],entries=[],slots=[],imgList=[],filter='all',outputs=[],sel=null;
 const BUILTIN=['title','prep','total','serves','ingredients','directions','notes','image'];
 const PRESET=['Calories','Fat','Carbs','Fiber','Protein','Sodium'];
 const fields=()=>mode==='custom'?customFields:[];
@@ -293,14 +305,27 @@ $('btnConvert').onclick=async()=>{
 
 // ── Images ──
 const cleanImg=n=>n.replace(/\.[^.]+$/,'').replace(/_\d{12,}$/,'').replace(/_/g,' ').toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
-function score(title,ic){const w=norm(title).split(' ').filter(x=>x.length>2);return w.length?w.filter(x=>ic.includes(x)).length/w.length:0;}
-function findImage(title){let b=null,bs=0;for(const i of imgList){const s=score(title,i.clean);if(s>bs){bs=s;b=i;}}return bs>=0.6?b:null;}
+const words=t=>norm(t).split(' ').filter(x=>x.length>2&&!/^\d+$/.test(x));
+function findImage(title){
+  const m='close';
+  const tw=words(title);if(!tw.length)return null;
+  let b=null,bs=0;
+  for(const i of imgList){
+    const iw=words(i.clean),sc=tw.filter(x=>iw.includes(x)).length/Math.max(tw.length,iw.length||1);
+    if(m==='exact'){if(sc===1&&tw.length===iw.length)return i;continue;}
+    if(sc>bs){bs=sc;b=i;}
+  }
+  return m==='close'&&bs>=0.75?b:null;
+}
 function autoMatch(){slots.forEach(s=>{if(!s.manual&&!s.removed)s.img=findImage(s.title);});}
+function place(s,img){if(!img)return;s.img=img;s.manual=true;s.removed=false;sel=null;clearOuts();render();}
+function blank(s){if(s.img&&!imgList.some(i=>i.key===s.img.key))imgList.push(s.img);s.img=null;s.removed=true;s.manual=false;clearOuts();render();}
 function hash(s){let h=2166136261;for(let i=0;i<s.length;i+=7){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return s.length+'_'+(h>>>0);}
 async function loadImg(f){
   let u=await new Promise(r=>{const fr=new FileReader();fr.onload=e=>r(e.target.result);fr.readAsDataURL(f);});
-  if(!/^data:image\/(png|jpe?g|gif);/.test(u))u=await new Promise(r=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;c.getContext('2d').drawImage(im,0,0);r(c.toDataURL('image/png'));};im.onerror=()=>r(u);im.src=u;});
-  return{name:f.name,clean:cleanImg(f.name),dataUrl:u,key:hash(u)};
+  const ok=/^data:image\/(png|jpe?g|gif);/.test(u);
+  const d=await new Promise(r=>{const im=new Image();im.onload=()=>{const w=im.naturalWidth,h=im.naturalHeight;if(!ok){const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0);u=c.toDataURL('image/png');}r([w||4,h||3]);};im.onerror=()=>r([4,3]);im.src=u;});
+  return{name:f.name,clean:cleanImg(f.name),dataUrl:u,key:hash(u),w:d[0],h:d[1]};
 }
 $('inImg').onchange=async function(){
   for(const f of [...this.files].filter(f=>f.type.startsWith('image/')))imgList.push(await loadImg(f));
@@ -320,14 +345,21 @@ function render(){
   if(!has)return;
   const g=new Map();slots.forEach(s=>{if(s.img){if(!g.has(s.img.key))g.set(s.img.key,[]);g.get(s.img.key).push(s);}});
   const matched=slots.filter(s=>s.img).length,sharedG=[...g.values()].filter(a=>a.length>1),sharedN=sharedG.reduce((n,a)=>n+a.length,0);
-  const used=new Set(g.keys()),unused=new Set(imgList.map(i=>i.key).filter(k=>!used.has(k))).size;
+  const used=new Set(g.keys()),seen=new Set(),free=imgList.filter(i=>!used.has(i.key)&&!seen.has(i.key)&&seen.add(i.key)),unused=free.length;
+  $('trayN').textContent=`Unmatched images (${free.length})`;
+  const tb=$('trayB');tb.innerHTML=free.length?'':'<span class="note">'+(imgList.length?'Every image is placed.':'Upload images; the ones that match no recipe will appear here.')+'</span>';
+  if(sel&&!free.some(i=>i.key===sel))sel=null;
+  free.forEach(i=>{const d=document.createElement('div');d.className='ti'+(i.key===sel?' sel':'');d.draggable=true;d.title=i.name;
+    d.innerHTML=`<img src="${i.dataUrl}" alt=""><span>${esc(i.name)}</span>`;
+    d.ondragstart=e=>{e.dataTransfer.setData('text/plain',i.key);e.dataTransfer.effectAllowed='copy';};
+    d.onclick=()=>{sel=sel===i.key?null:i.key;render();};tb.appendChild(d);});
   const isSh=s=>s.img&&g.get(s.img.key).length>1;
   const S=[['all','all','All recipes',slots.length,''],['matched','matched','Matched',matched,'g'],['unmatched','unmatched','Unmatched',slots.length-matched,'m'],['shared','shared','Shared image · '+sharedG.length+' pic'+(sharedG.length===1?'':'s'),sharedN,'r'+(sharedN?' has':'')]];
   $('stats').innerHTML=S.map(x=>`<button class="stat ${x[4]} ${filter===x[0]?'on':''}" data-f="${x[0]}"><b>${x[3]}</b><span>${x[2]}</span></button>`).join('');
   $('stats').querySelectorAll('.stat').forEach(b=>b.onclick=()=>{filter=b.dataset.f;render();});
   $('hint').textContent=sharedN?'Red recipes use the same picture. Remove the image from the ones that should not have it; red clears when only one is left.':(imgList.length?'':'Upload images to start matching.')+(unused?` ${unused} uploaded image${unused>1?'s are':' is'} not used by any recipe.`:'');
   const w=$('warn');w.hidden=!sharedN;w.textContent=`${sharedN} recipes still share an image (${sharedG.length} picture${sharedG.length>1?'s':''}). You can merge anyway, or fix them in step 2.`;
-  const list=$('list');list.innerHTML='';
+  const list=$('list'),st=list.scrollTop;list.innerHTML='';
   let rows;
   if(filter==='shared')rows=sharedG.flat();
   else rows=slots.filter(s=>filter==='all'||(filter==='matched'?s.img:!s.img));
@@ -342,11 +374,20 @@ function render(){
     d.innerHTML=(s.img?`<img class="th" src="${s.img.dataUrl}" alt="">`:'<div class="th"></div>')+
       `<div style="min-width:0"><div class="tt" title="${esc(s.title)}">${esc(s.title)}</div><div class="sub">${esc(s.entry.base)} · ${s.img?esc(s.img.name):'no image'}</div></div><div class="acts"></div>`;
     const a=d.querySelector('.acts');
+    const btn=(t,fn,c)=>{const b=document.createElement('button');b.className=c||'ghost';b.textContent=t;b.onclick=fn;a.appendChild(b);};
     if(sh){const t=document.createElement('span');t.className='tag';t.textContent='Shared ×'+g.get(s.img.key).length;a.appendChild(t);}
-    if(s.img){const r=document.createElement('button');r.className='ghost';r.textContent='Remove image';r.onclick=()=>{s.img=null;s.removed=true;s.manual=false;clearOuts();render();};a.appendChild(r);}
-    const u=document.createElement('button');u.className='ghost';u.textContent=s.img?'Replace':'Upload image';u.onclick=()=>pick(s);a.appendChild(u);
+    if(!s.img&&s.removed){const t=document.createElement('span');t.className='tag gray';t.textContent='Left blank';a.appendChild(t);}
+    if(sel)btn('Place here',()=>place(s,imgList.find(i=>i.key===sel)),'primary sm');
+    if(s.img)btn('Remove image',()=>blank(s));
+    else if(!s.removed)btn('Leave blank',()=>{s.removed=true;clearOuts();render();});
+    else btn('Allow auto-match',()=>{s.removed=false;s.img=findImage(s.title);clearOuts();render();});
+    btn(s.img?'Replace':'Upload image',()=>pick(s));
+    d.ondragover=e=>{e.preventDefault();d.classList.add('over');};
+    d.ondragleave=()=>d.classList.remove('over');
+    d.ondrop=e=>{e.preventDefault();place(s,imgList.find(i=>i.key===e.dataTransfer.getData('text/plain')));};
     list.appendChild(d);
   }
+  list.scrollTop=st;
 }
 
 // ── Step 3: build XLSX ──
@@ -355,16 +396,25 @@ const extOf=u=>({'image/jpeg':'jpeg','image/jpg':'jpeg','image/png':'png','image
 function toBuf(u){const b=atob(u.split(',')[1]),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a.buffer;}
 async function buildXlsx(rows,getImg){
   const wb=new ExcelJS.Workbook(),ws=wb.addWorksheet('Recipes'),keys=Object.keys(rows[0]||{});
+  const wd=k=>k.endsWith('_Image')?24:k.endsWith('_Title')?28:/_(Ingredients|Directions)$/.test(k)?40:18;
   const hr=ws.addRow(keys);hr.font={bold:true,color:{argb:'FFFFFFFF'}};hr.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1D6F42'}};hr.height=20;
-  keys.forEach((k,i)=>{ws.getColumn(i+1).width=k.endsWith('_Image')?22:k.endsWith('_Title')?28:/_(Ingredients|Directions)$/.test(k)?40:18;});
+  keys.forEach((k,i)=>{ws.getColumn(i+1).width=wd(k);});
   const imgCols=keys.map((k,i)=>({k,i})).filter(x=>x.k.endsWith('_Image'));
   rows.forEach((row,ri)=>{
     const xr=ws.addRow(keys.map(k=>row[k]??''));xr.alignment={wrapText:true,vertical:'top'};
-    if(imgCols.some(c=>getImg(ri,c.k.replace('_Image',''))))xr.height=120;
+    // every row gets an explicit height, so pictures stay level with their own recipe
+    let h=20;
+    keys.forEach(k=>{if(k.endsWith('_Image'))return;const w=wd(k);let n=0;String(row[k]??'').split('\n').forEach(l=>{n+=Math.max(1,Math.ceil(l.length/(w*0.95)));});h=Math.max(h,n*15+4);});
+    const pics=[];
     for(const c of imgCols){
       const img=getImg(ri,c.k.replace('_Image',''));if(!img)continue;
-      try{const id=wb.addImage({buffer:toBuf(img.dataUrl),extension:extOf(img.dataUrl)});
-        ws.addImage(id,{tl:{col:c.i,row:ri+1},br:{col:c.i+1,row:ri+2},editAs:'oneCell'});}catch(e){console.warn(e);}
+      const iw=img.w||4,ih=img.h||3,H=Math.min(300,Math.round(165*ih/iw)),W=Math.min(165,Math.round(H*iw/ih));
+      pics.push({c,img,W,H});h=Math.max(h,H*0.75+8);
+    }
+    xr.height=Math.min(409,h);
+    for(const p of pics){
+      try{const id=wb.addImage({buffer:toBuf(p.img.dataUrl),extension:extOf(p.img.dataUrl)});
+        ws.addImage(id,{tl:{col:p.c.i+0.03,row:ri+1+0.03},ext:{width:p.W,height:p.H},editAs:'oneCell'});}catch(e){console.warn(e);}
     }
   });
   ws.views=[{state:'frozen',ySplit:1}];
@@ -390,8 +440,9 @@ $('btnZip').onclick=()=>dlBlob(new Blob([buildZip(outputs)],{type:'application/z
 // ── Reset ──
 $('btnReset').onclick=()=>{
   if(!confirm('Clear all files, images, and results?'))return;
-  entries=[];slots=[];imgList=[];outputs=[];filter='all';mode='normal';
+  entries=[];slots=[];imgList=[];outputs=[];filter='all';mode='normal';sel=null;
   $('files').innerHTML='';$('list').innerHTML='';$('outs').innerHTML='';$('stats').innerHTML='';$('hint').textContent='';
+  $('trayN').textContent='';$('trayB').innerHTML='';
   $('detect').hidden=true;$('warn').hidden=true;$('btnConvert').disabled=true;$('btnZip').disabled=true;$('btnMerge').disabled=false;
   $('s2').classList.add('locked');$('s3').classList.add('locked');
   $('n2').classList.remove('ok');$('n3').classList.remove('ok');
