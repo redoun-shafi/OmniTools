@@ -260,9 +260,30 @@ $('btnConvert').onclick=async()=>{
 };
 
 // ── Images ──
-const cleanImg=n=>n.replace(/\.[^.]+$/,'').replace(/_\d{12,}$/,'').replace(/_/g,' ').toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
-function score(title,ic){const w=norm(title).split(' ').filter(x=>x.length>2);return w.length?w.filter(x=>ic.includes(x)).length/w.length:0;}
-function findImage(title){let b=null,bs=0;for(const i of imgList){const s=score(title,i.clean);if(s>bs){bs=s;b=i;}}return bs>=0.6?b:null;}
+// Image matching (same logic as the old working version)
+const AMAP={'à':'a','á':'a','â':'a','ã':'a','ä':'a','å':'a','æ':'ae','ç':'c','è':'e','é':'e','ê':'e','ë':'e','ì':'i','í':'i','î':'i','ï':'i','ñ':'n','ò':'o','ó':'o','ô':'o','õ':'o','ö':'o','ø':'o','ù':'u','ú':'u','û':'u','ü':'u','ý':'y','ÿ':'y'};
+const deaccent=s=>s.replace(/[àáâãäåæçèéêëìíîïñòóôõöøùúûüýÿ]/g,c=>AMAP[c]||c);
+const decodeUEsc=s=>s.replace(/#[Uu]([0-9a-fA-F]{4})/g,(_,h)=>{try{return String.fromCodePoint(parseInt(h,16));}catch(e){return '';}});
+function normM(s){
+  s=deaccent(decodeUEsc(String(s)).toLowerCase());
+  s=s.replace(/[-–—]/g,' ').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+  return s.replace(/\bflavour\b/g,'flavor').replace(/\bfibre\b/g,'fiber').replace(/\bdoughnut\b/g,'donut');
+}
+const cleanImg=n=>normM(n.replace(/\.[^.]+$/,'').replace(/_\d{8,}(_\d+)?$/,'').replace(/_/g,' '));
+// Whole-word coverage of the recipe title; ties go to the image with fewer extra words. Needs >=50% coverage.
+function findImage(title){
+  const tw=normM(title).split(' ').filter(Boolean);
+  if(!tw.length)return null;
+  let best=null,bestCov=0,bestPrec=0;
+  for(const i of imgList){
+    const iw=i.clean.split(' ').filter(Boolean),set=new Set(iw);
+    const hits=tw.filter(w=>set.has(w)).length;
+    if(!hits)continue;
+    const cov=hits/tw.length,prec=hits/iw.length;
+    if(cov>bestCov||(cov===bestCov&&prec>bestPrec)){bestCov=cov;bestPrec=prec;best=i;}
+  }
+  return bestCov>=0.5?best:null;
+}
 function autoMatch(){slots.forEach(s=>{if(!s.manual&&!s.removed)s.img=findImage(s.title);});}
 function hash(s){let h=2166136261;for(let i=0;i<s.length;i+=7){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return s.length+'_'+(h>>>0);}
 async function loadImg(f){
