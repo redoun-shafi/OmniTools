@@ -34,8 +34,10 @@ button,.upl{font:inherit}
 input[type=file]{display:none}
 .cf{border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:9px;background:#f8faf8}
 .cf[hidden]{display:none}
-.row2{display:flex;gap:6px}
-.row2 input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit}
+.row2{display:flex;gap:6px;flex-wrap:wrap}
+.chk{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mut);cursor:pointer}
+.chk input{accent-color:var(--g)}
+.row2 input[type=text],.row2 input:not([type]){flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{display:flex;align-items:center;background:var(--gt);border-radius:14px;padding:2px 3px 2px 10px;font-size:12px}
 .chip button{background:none;border:none;cursor:pointer;color:var(--mut);padding:2px 6px;border-radius:10px}
@@ -81,12 +83,13 @@ input[type=file]{display:none}
     <button class="opt" data-m="custom"><b>Add custom fields</b><span>Your own placeholders, like calories or protein</span></button>
   </div>
   <div class="cf" id="cf" hidden>
-    <div class="note">Each name becomes its own column. In the doc, write it as <b>Name: value</b>. Several on one line work too, separated by | .</div>
+    <div class="note">Type any name (Calories, Fat, Cuisine, anything). If the doc has <b>Name: value</b> anywhere, it is collected automatically and copied <b>exactly as written</b> (220 kcal stays 220 kcal, 15g stays 15g). Several on one line work too, separated by spaces, commas or | .</div>
     <div class="row2"><input id="cfInput" placeholder="Add placeholder names, e.g. Calories, Fat, Protein" autocomplete="off"><button class="primary" id="cfAdd" style="padding:8px 14px">Add</button></div>
     <div class="chips" id="chips"></div>
-    <div class="row2"><button class="ghost" id="cfPreset">Add nutrition set</button><button class="ghost" id="cfClear">Clear all</button></div>
+    <label class="chk"><input type="checkbox" id="cfAuto" checked> Auto-detect nutrition labels from my DOCX files</label>
+    <div class="row2"><button class="ghost" id="cfDetect">Detect from doc</button><button class="ghost" id="cfPreset">Add nutrition set</button><button class="ghost" id="cfClear">Clear all</button></div>
     <div class="note" id="cfMsg" style="color:var(--a)"></div>
-    <div class="note">The # on a chip keeps numbers only (259 kcal becomes 259).</div>
+    <div class="note">The # on a chip is optional: it keeps the number only and drops the unit. Leave it off to keep the full text (220 kcal).</div>
   </div>
   <label class="upl"><input type="file" id="inDocx" accept=".docx" multiple>Choose DOCX files</label>
   <div class="files" id="files"></div>
@@ -143,29 +146,59 @@ const fields=()=>mode==='custom'?customFields:[];
 // ── Custom fields ──
 const norm=s=>String(s).toLowerCase().replace(/\([^)]*\)/g,'').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
 const fkey=n=>n.trim().replace(/[^\w\s-]/g,'').replace(/\s+/g,'_');
-try{const s=localStorage.getItem('rx_fields');if(s)customFields=JSON.parse(s);}catch(e){}
+// Known nutrition labels. First name = display name, the rest are synonyms the doc may use.
+const NUT=[
+ ['Calories','calorie','cals','cal','kcal'],
+ ['Fat','total fat'],
+ ['Saturated Fat','sat fat','saturated fats'],
+ ['Trans Fat','trans fats'],
+ ['Monounsaturated Fat','mono fat'],
+ ['Polyunsaturated Fat','poly fat'],
+ ['Carbs','carbohydrates','carbohydrate','total carbohydrates','total carbohydrate','total carbs','carb'],
+ ['Net Carbs','net carbohydrates'],
+ ['Fiber','fibre','dietary fiber','dietary fibre'],
+ ['Soluble Fiber','soluble fibre'],
+ ['Insoluble Fiber','insoluble fibre'],
+ ['Sugar','sugars','total sugars','total sugar'],
+ ['Added Sugar','added sugars'],
+ ['Protein','proteins'],
+ ['Sodium'],['Cholesterol'],['Potassium'],['Calcium'],['Iron'],['Magnesium'],['Zinc'],['Vitamin A'],['Vitamin C'],['Vitamin D']
+];
+const groupOf=name=>{const n=norm(name);return NUT.findIndex(g=>g.some(a=>norm(a)===n));};
+try{
+  const s=localStorage.getItem('rx_fields2');
+  if(s)customFields=JSON.parse(s);
+  else{const o=localStorage.getItem('rx_fields');if(o)customFields=JSON.parse(o).map(f=>({...f,numeric:false}));}
+}catch(e){}
 if(!customFields.length)customFields=PRESET.map(n=>({name:n,key:n,numeric:false}));
-function fieldsChanged(){try{localStorage.setItem('rx_fields',JSON.stringify(customFields));}catch(e){}renderChips();reparse();}
+function fieldsChanged(){try{localStorage.setItem('rx_fields2',JSON.stringify(customFields));}catch(e){}renderChips();reparse();}
 function renderChips(){
   const b=$('chips');b.innerHTML='';
   customFields.forEach((f,i)=>{
     const c=document.createElement('div');c.className='chip';
     const l=document.createElement('span');l.textContent=f.name;
-    const n=document.createElement('button');n.textContent='#';n.title='Numbers only';if(f.numeric)n.className='on';
+    const n=document.createElement('button');n.textContent='#';n.title='Numbers only (drops the unit)';if(f.numeric)n.className='on';
     n.onclick=()=>{f.numeric=!f.numeric;fieldsChanged();};
     const d=document.createElement('button');d.textContent='✕';d.title='Remove';
     d.onclick=()=>{customFields.splice(i,1);fieldsChanged();};
     c.append(l,n,d);b.appendChild(c);
   });
 }
+function addReason(name){
+  const k=fkey(name),m=norm(name);
+  if(!k||!m)return 'invalid';
+  if(BUILTIN.includes(m))return 'built in';
+  if(customFields.some(f=>norm(f.name)===m))return 'already added';
+  const g=groupOf(name);
+  if(g>=0){const x=customFields.find(f=>groupOf(f.name)===g);if(x)return 'same as '+x.name;}
+  return '';
+}
 function addFields(raw){
   const bad=[];let n=0;
   for(const name of String(raw).split(/[,\n;]/).map(x=>x.trim()).filter(Boolean)){
-    const k=fkey(name),m=norm(name);
-    if(!k||!m)bad.push(name+' (invalid)');
-    else if(BUILTIN.includes(m))bad.push(name+' (built in)');
-    else if(customFields.some(f=>norm(f.name)===m))bad.push(name+' (already added)');
-    else{customFields.push({name,key:k,numeric:false});n++;}
+    const r=addReason(name);
+    if(r)bad.push(name+' ('+r+')');
+    else{customFields.push({name,key:fkey(name),numeric:false});n++;}
   }
   $('cfMsg').textContent=bad.length?'Skipped: '+bad.join(', '):'';
   if(n)fieldsChanged();
@@ -174,31 +207,74 @@ $('cfAdd').onclick=()=>{addFields($('cfInput').value);$('cfInput').value='';};
 $('cfInput').onkeydown=e=>{if(e.key==='Enter')$('cfAdd').click();};
 $('cfPreset').onclick=()=>addFields(PRESET.join(','));
 $('cfClear').onclick=()=>{customFields=[];fieldsChanged();};
+$('cfDetect').onclick=()=>autoDetect(true);
 document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
   mode=b.dataset.m;
   document.querySelectorAll('.opt').forEach(x=>x.classList.toggle('on',x===b));
   $('cf').hidden=mode!=='custom';reparse();
+  if(mode==='custom'&&$('cfAuto').checked)autoDetect(false);
 });
 renderChips();
 
 // ── Parser ──
 const clean=t=>t.replace(/\s+/g,' ').trim();
+const rxEsc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const labelPat=s=>rxEsc(s.replace(/\([^)]*\)/g,'').trim()).replace(/\s+/g,'\\s+');
+const SEP_STRICT='\\s*[:：]\\s*';
+const SEP_LOOSE='(?:\\s*[:：]\\s*|\\s*[=–-]\\s*(?=\\d)|\\s+(?=\\d))'; // inside a Nutrition block "Calories 220 kcal" works too
+// Finds every "Label: value" in a line, wherever it sits and whatever separates them.
+// Known nutrition names that are not chips (e.g. Saturated Fat) still act as boundaries,
+// so "Fat: 15g Saturated Fat: 3g" never mixes up Fat and Saturated Fat.
+function makeMatcher(F,loose){
+  const map=new Map(),pats=new Set();
+  const add=(label,chip)=>{const n=norm(label);if(!n)return;map.set(n,chip);pats.add(labelPat(label));};
+  NUT.forEach(g=>g.forEach(a=>add(a,null)));
+  F.forEach(f=>{const g=groupOf(f.name);if(g>=0)NUT[g].forEach(a=>add(a,f));add(f.name,f);});
+  const alts=[...pats].sort((a,b)=>b.length-a.length).join('|');
+  return{map,re:new RegExp('(?<![A-Za-z0-9])('+alts+')(?:\\s*\\([^)]{0,25}\\))?'+(loose?SEP_LOOSE:SEP_STRICT),'gi')};
+}
+function scanSeg(seg,M){
+  const ms=[...seg.matchAll(M.re)];if(!ms.length)return null;
+  const hits=ms.map((m,i)=>{
+    const last=i+1>=ms.length,end=last?seg.length:ms[i+1].index;
+    let v=seg.slice(m.index+m[0].length,end).trim().replace(/[\s,;·•]+$/,'');
+    if(!last)v=v.replace(/\.$/,'');
+    return{label:m[1],chip:M.map.get(norm(m[1])),val:v,raw:seg.slice(m.index,end).trim()};
+  });
+  return{pre:seg.slice(0,ms[0].index).trim(),hits};
+}
 function parseRecipes(text){
-  const F=fields(),lookup={};F.forEach(f=>lookup[norm(f.name)]=f);
+  const F=fields(),MS=F.length&&makeMatcher(F,false),ML=F.length&&makeMatcher(F,true);
   const val=l=>l.slice(l.indexOf(':')+1).trim();
   const blank=()=>{const o={Title:'',Prep:'',Total:'',Serves:'',Ingredients:'',Directions:'',Notes:''};F.forEach(f=>o[f.key]='');return o;};
-  const store=(f,v)=>{if(f.numeric){const m=v.replace(/,/g,'').match(/-?\d+(\.\d+)?/);cur[f.key]=m?Number(m[0]):v;}else cur[f.key]=v;};
-  let R=[],cur=null,sec=null,dc=1;
+  const store=(f,v,inNut)=>{
+    const p=inNut?2:1;
+    if(cur[f.key]!==''&&cur[f.key]!=null&&(pri[f.key]||0)>=p)return; // keep the first value; a value inside the Nutrition block beats one found elsewhere
+    pri[f.key]=p;
+    if(f.numeric){const m=v.replace(/,/g,'').match(/-?\d+(\.\d+)?/);cur[f.key]=m?Number(m[0]):v;}else cur[f.key]=v;
+  };
+  let R=[],cur=null,sec=null,dc=1,nut=false,pri={},cl={};
   for(let line of text.split('\n').map(clean).filter(l=>l)){
     let lo=line.toLowerCase();
-    if(lo.startsWith('recipe title:')){if(cur)R.push(cur);cur=blank();cur.Title=val(line);sec=null;dc=1;continue;}
+    if(lo.startsWith('recipe title:')){if(cur)R.push(cur);cur=blank();cur.Title=val(line);sec=null;dc=1;nut=false;pri={};cl={};continue;}
     if(!cur)continue;
+    if(/^nutrition/.test(lo))nut=true;
+    else if(/^(ingredients|directions|prep time|total time|serv(es|ings?)|notes)/.test(lo))nut=false;
     if(F.length){
       const left=[];let hit=false;
       for(const seg of line.split('|')){
-        const m=seg.match(/^\s*([^:]{1,40}?)\s*[:：]\s*(.*)$/),f=m&&lookup[norm(m[1])];
-        if(f){hit=true;const v=m[2].trim();if(v){store(f,v);if(sec&&sec[0]==='C')sec=null;}else sec='C:'+f.key;}
-        else left.push(seg.trim());
+        const r=scanSeg(seg,nut?ML:MS);
+        if(!r){left.push(seg.trim());continue;}
+        const parts=[];let used=false;
+        for(const h of r.hits){
+          // inside Ingredients/Directions, a nutrition name only counts when it has a real amount (18g), so "Protein: 2 scoops yogurt" stays an ingredient
+          const guard=!nut&&(sec==='I'||sec==='D')&&h.chip&&groupOf(h.chip.name)>=0&&!NUT_VAL.test(h.val);
+          if(!h.chip||guard){parts.push(h.raw.replace(/[\s,;]+$/,''));continue;}
+          used=true;
+          if(h.val){store(h.chip,h.val,nut);if(sec&&sec[0]==='C')sec=null;}else{sec='C:'+h.chip.key;cl[h.chip.key]=[];}
+        }
+        if(!used){left.push(seg.trim());continue;}
+        hit=true;if(r.pre)left.push(r.pre);left.push(...parts);
       }
       if(hit){line=left.filter(Boolean).join(' | ');if(!line)continue;lo=line.toLowerCase();}
     }
@@ -211,9 +287,50 @@ function parseRecipes(text){
     if(sec==='I')cur.Ingredients+='• '+line+'\n';
     else if(sec==='D')cur.Directions+=dc+++'. '+line+'\n';
     else if(sec==='N')cur.Notes+='• '+line+'\n';
-    else if(sec&&sec[0]==='C')cur[sec.slice(2)]+='• '+line+'\n';
+    else if(sec&&sec[0]==='C'){const k=sec.slice(2),a=cl[k]||(cl[k]=[]);a.push(line);cur[k]=a.length===1?a[0]:a.map(x=>'• '+x).join('\n')+'\n';}
   }
   if(cur)R.push(cur);return R;
+}
+// ── Auto-detect nutrition labels in the doc ──
+const UNITS='(?:kcal|cal|calories|g|gm|gms|grams?|mg|mcg|µg|μg|kj|iu|%)';
+const NUT_VAL=new RegExp('^[~≈]?\\d+(?:[.,]\\d+)?\\s*'+UNITS+'(?![A-Za-z])','i');
+const GEN=new RegExp('(?<![A-Za-z0-9])([A-Z][A-Za-z]*(?: [A-Za-z]+){0,2})\\s*[:：]\\s*(?=[~≈]?\\d+(?:[.,]\\d+)?\\s*'+UNITS+'(?![A-Za-z]))','g');
+const titleCase=s=>s.trim().replace(/\s+/g,' ').toLowerCase().replace(/\b[a-z]/g,c=>c.toUpperCase());
+function detectLabels(texts){
+  const VM=[makeMatcher([],false),makeMatcher([],true)],out=new Map();
+  for(const text of texts){
+    let nut=false;
+    for(const line of text.split('\n').map(clean).filter(Boolean)){
+      const lo=line.toLowerCase();
+      if(lo.startsWith('recipe title:')||/^(ingredients|directions|prep time|total time|serv(es|ings?)|notes)/.test(lo))nut=false;
+      if(/^nutrition/.test(lo))nut=true;
+      for(const seg of line.split('|')){
+        const r=scanSeg(seg,VM[nut?1:0]);
+        if(r)for(const h of r.hits){
+          if(!(NUT_VAL.test(h.val)||(nut&&/^[~≈]?\d/.test(h.val))))continue;
+          const g=groupOf(h.label);if(g<0)continue;
+          if(!out.has('g'+g))out.set('g'+g,norm(h.label).length<=4?NUT[g][0]:titleCase(h.label));
+        }
+        if(nut)for(const m of seg.matchAll(GEN)){
+          const n=norm(m[1]);if(!n||groupOf(m[1])>=0||BUILTIN.includes(n))continue;
+          if(!out.has('x'+n))out.set('x'+n,titleCase(m[1]));
+        }
+      }
+    }
+  }
+  return [...out.values()];
+}
+function autoDetect(manual){
+  if(mode!=='custom')return;
+  const texts=entries.filter(e=>e.text).map(e=>e.text);
+  if(!texts.length){if(manual)$('cfMsg').textContent='Choose your DOCX files first, then detect.';return;}
+  const added=[];
+  for(const name of detectLabels(texts)){
+    if(addReason(name))continue;
+    customFields.push({name,key:fkey(name),numeric:false});added.push(name);
+  }
+  if(added.length)fieldsChanged();
+  $('cfMsg').textContent=added.length?'Auto-detected from your doc and added: '+added.join(', '):(manual?'No new nutrition labels found in the doc.':'');
 }
 function makeRows(recs){
   const cols=['Title','Prep','Total','Serves','Ingredients','Directions','Notes',...fields().map(f=>f.key)],rows=[];
@@ -230,7 +347,10 @@ function renderDetect(){
   const done=entries.filter(e=>e.status==='done'),F=fields(),box=$('detect');
   if(!done.length||!F.length){box.hidden=true;return;}
   const all=done.flatMap(e=>e.recs);
-  box.innerHTML='Found in '+all.length+' recipes: '+F.map(f=>{const n=all.filter(r=>r[f.key]!==''&&r[f.key]!=null).length;return `<span class="${n===all.length?'ok':n===0?'bad':''}">${esc(f.name)} ${n}/${all.length}</span>`;}).join(' · ');
+  box.innerHTML='Found in '+all.length+' recipes: '+F.map(f=>{
+    const have=all.filter(r=>r[f.key]!==''&&r[f.key]!=null),n=have.length,ex=n?String(have[0][f.key]).split('\n')[0].slice(0,24):'';
+    return `<span class="${n===all.length?'ok':n===0?'bad':''}" title="${esc(ex)}">${esc(f.name)} ${n}/${all.length}${ex?` (e.g. ${esc(ex)})`:''}</span>`;
+  }).join(' · ');
   box.hidden=false;
 }
 
@@ -240,16 +360,19 @@ $('inDocx').onchange=function(){
     const pill=document.createElement('div');pill.className='pill';
     pill.innerHTML=`<span>📄</span><b>${esc(f.name)}</b><span class="st">⏳</span>`;
     $('files').appendChild(pill);
-    entries.push({file:f,base:f.name.replace(/\.docx$/i,''),status:'idle',pill});
+    const e={file:f,base:f.name.replace(/\.docx$/i,''),status:'idle',pill,text:null};
+    e.ready=f.arrayBuffer().then(b=>mammoth.extractRawText({arrayBuffer:b})).then(r=>{e.text=r.value;}).catch(()=>{e.text=null;});
+    entries.push(e);
   }
   $('btnConvert').disabled=!entries.some(e=>e.status==='idle');this.value='';
+  Promise.all(entries.map(e=>e.ready)).then(()=>{if(mode==='custom'&&$('cfAuto').checked)autoDetect(false);});
 };
 $('btnConvert').onclick=async()=>{
   $('btnConvert').disabled=true;
   for(const e of entries.filter(x=>x.status==='idle')){
     const st=e.pill.querySelector('.st');st.textContent='…';
     try{
-      e.text=(await mammoth.extractRawText({arrayBuffer:await e.file.arrayBuffer()})).value;
+      await e.ready;if(e.text==null)throw 0;
       build(e);if(!e.recs.length)throw 0;
       e.status='done';st.textContent='✅';
       e.rows.forEach((row,ri)=>['Top','Bottom'].forEach(side=>{const t=String(row[side+'_Title']||'').trim();if(t)slots.push({entry:e,ri,side,title:t,img:null,manual:false,removed:false});}));
